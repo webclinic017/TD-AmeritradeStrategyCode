@@ -1,14 +1,21 @@
 import requests
-from config import client_id
+import os
+from config import client_id, accntNmber, password
+import time
+from TDameritrade_authorization import TDAuthentication
+import pandas as pd
+
+seconds = time.time()
 
 class Historical_Data(object):
     def __init__(self,client_id):
         self.client_id = client_id
+
     def Historical_Endpoint(self):
         #Historical Data
 
         # daily proces endpoint
-        historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format('AVEO')
+        historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format('RING')
 
         # define a payload
         historicalPayload = {'apikey':client_id,
@@ -16,8 +23,8 @@ class Historical_Data(object):
                    'frequencytype':'minute',
                    'frequency':'1',
                    'period':'2',
-                   'endDate':'1576374829000',
-                   'startDate':'1576029229000',
+                   'endDate':'1578448929',
+                   'startDate':'1262311329', #Saturday, January 1, 2000 8:56:44 PM 
                    'needExtendedHoursData':'true'}
 
         # make a request
@@ -27,40 +34,108 @@ class Historical_Data(object):
         historicalData = historicalContent.json()
         print(historicalData)
 
-def Quotes():
-    #Quotes
+class Quote(object):
+    def __init__(self,client_id):
+        self.client_id = client_id
 
-    # daily proces endpoint
-    quoteEndpoint = r'https://api.tdameritrade.com/v1/marketdata/quotes'
+    def Quotes(self):
+        #Quotes
 
-    # define a payload
-    quotePayload = {'apikey':client_id,
-                    'symbol':symbol
-                   }
+        # daily proces endpoint
+        quoteEndpoint = r'https://api.tdameritrade.com/v1/marketdata/quotes'
+
+        # define a payload
+        quotePayload = {'apikey':client_id,
+                        'symbol':'AVEO'
+                       }
 
 
-    # make a request
-    quoteContent = requests.get(url = quoteEndpoint, params = quotePayload)
+        # make a request
+        quoteContent = requests.get(url = quoteEndpoint, params = quotePayload)
 
-    # convert it to a dictionary
-    quoteData = quoteContent.json()
-    print(quoteData)
+        # convert it to a dictionary
+        quoteData = quoteContent.json()
+        dfquoteData = pd.DataFrame.from_dict(quoteData)
+        print(dfquoteData)
+        price = dfquoteData['askPrice']
+        print(price)
+        #quoteDataKeys = quoteData.keys()
+        #print(quoteDataKeys)
 
-def Movers():
-    #Movers
-    moverEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/movers'.format('$SPX.X')
+class Movers(object):
+    def __init__(self,client_id):
+        self.client_id = client_id
 
-    # define a payload
-    moverPayload = {'apikey':client_id,
-                    'direction':'up',
-                    'change':'value'
-                    }
+    def Movers(self):
+        #Movers
+        moverEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/movers'.format('$SPX.X')
 
-    # make a request
-    moverContent = requests.get(url = moverEndpoint, params = moverPayload)
+        # define a payload
+        moverPayload = {'apikey':client_id,
+                        'direction':'up',
+                        'change':'value'
+                        }
 
-    # convert it to a dictionary
-    moverData = moverContent.json()
-    print(moverData)
+        # make a request
+        moverContent = requests.get(url = moverEndpoint, params = moverPayload)
 
-    df_movers = pd.DataFrame.from_dict(moverData)
+        # convert it to a dictionary
+        moverData = moverContent.json()
+        print(moverData)
+
+        df_movers = pd.DataFrame.from_dict(moverData)
+
+class Account_Data(object):
+    def __init__(self,client_id,accntNmber,password):
+        self.client_id = client_id
+        self.accntNmber = accntNmber
+        self.password = password
+
+    def Account_Balance(self):
+
+        #Endpoint
+        AccntEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}'.format(accntNmber)
+
+        #Authorization
+        TDClient = TDAuthentication(client_id, accntNmber, password)
+        TDClient.authenticate()
+        access_token = TDClient.access_token
+
+        params = {'fields':'positions,orders'}
+        headers = {'Authorization': 'Bearer {}'.format(access_token)}
+
+
+        AccntContent = requests.get(url = AccntEndpoint, params = params, headers = headers)
+
+        AccntData = AccntContent.json()
+        dfAccntData = pd.DataFrame.from_dict(AccntData)
+        print(dfAccntData)
+
+class WatchList(object):
+    def __init__(self,client_id,accntNmber,password):
+        self.client_id = client_id
+        self.accntNmber = accntNmber
+        self.password = password
+
+    def Watch_List(self):
+
+        WatchListEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/watchlists'.format(accntNmber)
+
+        #Authorization
+        TDClient = TDAuthentication(client_id, accntNmber, password)
+        TDClient.authenticate()
+        access_token = TDClient.access_token
+
+        headers = {'Authorization': 'Bearer {}'.format(access_token)}
+
+        WatchListContent = requests.get(url = WatchListEndpoint, headers = headers)
+        WatchListData = WatchListContent.json()
+        print(WatchListData)
+   
+
+
+
+
+        
+
+       
