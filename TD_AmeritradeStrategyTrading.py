@@ -12,8 +12,10 @@ from TDameritrade_authorization import TDAuthentication
 #TD_WatchList = WatchList(client_id,accntNmber,password)
 #TD_WatchList.Watch_List()
 
-#TD_DataStream = Main_Runtime(self)
-#TD_DataStream = Main()
+TD_QuoteAPI = Quote(client_id,askPrice)
+TD_QuoteAPI.Quotes()
+askPrice = TD_QuoteAPI.askPrice
+print(askPrice)
 
 #Login and Access Account
 #TDClient = TDAuthentication(client_id, accntNmber, password)
@@ -26,8 +28,7 @@ from TDameritrade_authorization import TDAuthentication
 #TD_HistoricalAPI = Historical_Data(client_id)
 #TD_HistoricalAPI.Historical_Endpoint()
 
-TD_QuoteAPI = Quote(client_id)
-TD_QuoteAPI.Quotes()
+
 
 
 

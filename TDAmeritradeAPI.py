@@ -55,12 +55,10 @@ class Quote(object):
 
         # convert it to a dictionary
         quoteData = quoteContent.json()
-        dfquoteData = pd.DataFrame.from_dict(quoteData)
-        print(dfquoteData)
-        price = dfquoteData['askPrice']
-        print(price)
-        #quoteDataKeys = quoteData.keys()
-        #print(quoteDataKeys)
+        askPrice = quoteData['AVEO']['askPrice']
+        #print(askPrice)
+  
+
 
 class Movers(object):
     def __init__(self,client_id):
