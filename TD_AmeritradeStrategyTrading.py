@@ -12,10 +12,9 @@ from TDameritrade_authorization import TDAuthentication
 #TD_WatchList = WatchList(client_id,accntNmber,password)
 #TD_WatchList.Watch_List()
 
-TD_QuoteAPI = Quote(client_id,askPrice)
+TD_QuoteAPI = Quote(client_id)
 TD_QuoteAPI.Quotes()
-askPrice = TD_QuoteAPI.askPrice
-print(askPrice)
+
 
 #Login and Access Account
 #TDClient = TDAuthentication(client_id, accntNmber, password)

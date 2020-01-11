@@ -46,7 +46,7 @@ class Quote(object):
 
         # define a payload
         quotePayload = {'apikey':client_id,
-                        'symbol':'AVEO'
+                        'symbol': 'AVEO,AAPL'
                        }
 
 
@@ -55,8 +55,10 @@ class Quote(object):
 
         # convert it to a dictionary
         quoteData = quoteContent.json()
-        askPrice = quoteData['AVEO']['askPrice']
-        #print(askPrice)
+        askPriceAVEO = quoteData['AVEO']['askPrice']
+        askPriceAAPL = quoteData['AAPL']['askPrice']
+        print(askPriceAVEO)
+        print(askPriceAAPL)
   
 
 
