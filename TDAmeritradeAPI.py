@@ -5,7 +5,6 @@ import time
 from TDameritrade_authorization import TDAuthentication
 import pandas as pd
 
-# Hi this is Morgan
 
 seconds = time.time()
 
