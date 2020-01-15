@@ -42,25 +42,25 @@ class Quote(object):
 
     def Quotes(self):
         #Quotes
-
+        symbols = pd.read_csv('WatchList.csv')
+        symbols = pd.DataFrame(symbols)
+        symbols = symbols.Symbol
+        #print(symbols)
         # daily proces endpoint
         quoteEndpoint = r'https://api.tdameritrade.com/v1/marketdata/quotes'
-
         # define a payload
         quotePayload = {'apikey':client_id,
-                        'symbol': 'AVEO,AAPL'
+                        'symbol':symbols
                        }
-
-
         # make a request
         quoteContent = requests.get(url = quoteEndpoint, params = quotePayload)
-
         # convert it to a dictionary
         quoteData = quoteContent.json()
-        askPriceAVEO = quoteData['AVEO']['askPrice']
-        askPriceAAPL = quoteData['AAPL']['askPrice']
-        print(askPriceAVEO)
-        print(askPriceAAPL)
+        for symbols in quoteData:
+            askPriceSymbols = quoteData[symbols]['askPrice']
+            data = [symbols, askPriceSymbols]
+            print(data)
+            
   
 
 
