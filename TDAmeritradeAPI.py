@@ -59,10 +59,8 @@ class Quote(object):
             askPriceSymbols = quoteData[symbols]['askPrice']
             data = [symbols, askPriceSymbols]
             print(data)
+
             
-  
-
-
 class Movers(object):
     def __init__(self,client_id):
         self.client_id = client_id
