@@ -116,4 +116,3 @@ class TDAuthentication(object):
             self.access_token = os.environ['td_token']
         except KeyError:
             self._get_access_code()
-            #self.get_access_token()

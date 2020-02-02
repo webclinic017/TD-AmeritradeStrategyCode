@@ -15,7 +15,7 @@ class TDStreamerClient():
         self.connection = None
         self.data_requests = {'request': []}
         self.fields_ids_dictionary = STREAM_FIELD_IDS
-        self.fields_keys_dictionary = STREAM_FIELDS_KEYS
+        self.fields_keys_dictionary = STREAM_FIELDS_KEYS 
 
     def _build_login_request(self):
             login_request = {'requests': [{'service': 'ADMIN',
