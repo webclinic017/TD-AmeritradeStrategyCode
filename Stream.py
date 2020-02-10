@@ -1,3 +1,4 @@
+import requests
 import asyncio
 import datetime
 import json
@@ -5,19 +6,24 @@ import pprint
 import signal
 import urllib
 import dateutil.parser
-from Fields import STREAM_FIELD_IDS, STREAM_FIELDS_KEYS
+from Fields import STREAM_FIELD_IDS, STREAM_FIELD_KEYS
 
-class TDStreamerClient():
+class TDStreamerClient(object):
+
+
     def __init__(self,websocket_url=None, user_principles_data=None, credentials=None):
         self.wesocket_url = "wss://{}/ws".format(websocket_url)
         self.credentials = credentials
-        self.user_porinciples_data = user_principles_data
+        self.user_principles_data = user_principles_data
         self.connection = None
         self.data_requests = {'request': []}
         self.fields_ids_dictionary = STREAM_FIELD_IDS
-        self.fields_keys_dictionary = STREAM_FIELDS_KEYS 
+        self.fields_keys_dictionary = STREAM_FIELD_KEYS 
+
 
     def _build_login_request(self):
+            content = requests.get(url = endpoint, params = params, headers = headers)
+            userPrincipalsResponse = content.json()
             login_request = {'requests': [{'service': 'ADMIN',
                                    'command': 'LOGIN',
                                    'requestid': '0',

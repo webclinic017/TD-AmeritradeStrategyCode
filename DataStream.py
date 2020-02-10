@@ -31,6 +31,8 @@ class Main(object):
     #make a request
     content = requests.get(url = endpoint, params = params, headers = headers)
     userPrincipalsResponse = content.json()
+    userPrincipalsResponse = userPrincipalsResponse['streamerConnectionInfo']['streamerSubscriptionKeys']['preferences']['surrogateIds'] 
+
 
     #grab the timestamp and conver to ms
     tokenTimeStamp = userPrincipalsResponse['streamerInfo']['tokenTimestamp']
