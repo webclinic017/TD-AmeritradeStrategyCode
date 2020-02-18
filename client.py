@@ -9,6 +9,9 @@ from datetime import datetime
 
 class TDClient():
 
+    def __init__(self,**kwargs):
+
+
     def AccessTokenAuth():
         #Login and Access Account
         TDAuth = TDAuthentication(client_id, accntNmber, password)

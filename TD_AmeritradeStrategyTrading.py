@@ -1,21 +1,15 @@
-import requests 
-from client import TDClient
-from config import accntNmber, password, client_id, redirect_uri
+from Client_ import TDClient
+from config import client_id, password, accntNmber, userName
 
+#Method1:
+#initialize new session with accnt info and caching false
+TDSession = TDClient(account_number = accntNmber,
+                      account_password = password,
+                      redirect_uri = 'http://localhost/',
+                      consumer_id = client_id,
+                      cache_state = False
+                     )
+TDSession.login()
 
-#TDClient.AccessTokenAuth()
-
-# Create a streaming sesion
-TDStreamingClient = TDClient.create_streaming_session()
-
-TDStreamingClient.level_one_quotes(symbols=['MSFT','AAPL','TSLA'],  fields=list(range(0,53)))
-#TD_QuoteAPI = Quote(client_id)
-#TD_QuoteAPI.Quotes()
-
-
-
-
-
-
-
-
+print(TDSession.state['loggedin'])
+print(TDSession.authstate)

@@ -5,6 +5,7 @@ from splinter import Browser
 from config import client_id,password,accntNmber,userName
 import os
 
+
 class TDAuthentication(object):
 
     def __init__(self,client_id,accntNmber,password):
@@ -84,7 +85,7 @@ class TDAuthentication(object):
         #close the browser
         browser.quit()
 
-        #print(parse_url)
+        print(parse_url)
 
         #define endpoinpoint
         url = r'https://api.tdameritrade.com/v1/oauth2/token'
@@ -115,4 +116,5 @@ class TDAuthentication(object):
         try:
             self.access_token = os.environ['td_token']
         except KeyError:
-            self._get_access_code()
+            return False
+            #self._get_access_code()
