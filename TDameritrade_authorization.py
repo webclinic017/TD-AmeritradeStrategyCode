@@ -85,7 +85,7 @@ class TDAuthentication(object):
         #close the browser
         browser.quit()
 
-        print(parse_url)
+        #print(parse_url)
 
         #define endpoinpoint
         url = r'https://api.tdameritrade.com/v1/oauth2/token'
@@ -108,6 +108,8 @@ class TDAuthentication(object):
         #print(decoded_content)
 
         access_token = decoded_content['access_token']
+
+        print(access_token)
 
         os.environ['td_token'] = str(access_token)
         self.access_token = access_token

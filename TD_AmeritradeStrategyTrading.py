@@ -6,10 +6,10 @@ from config import client_id, password, accntNmber, userName
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
                       redirect_uri = 'http://localhost/',
-                      consumer_id = client_id,
-                      cache_state = False
+                      consumer_id = client_id
                      )
 TDSession.login()
 
 print(TDSession.state['loggedin'])
+
 print(TDSession.authstate)
