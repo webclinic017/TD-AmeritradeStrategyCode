@@ -1,5 +1,6 @@
 from config import client_id,accntNmber,password,redirect_uri
 from TDameritrade_authorization import TDAuthentication
+from Stream import TDStreamerClient
 import urllib.parse
 from urllib.parse import urlparse
 import urllib3
@@ -51,16 +52,17 @@ class TDClient():
         str_representation = '<TDAmeritrade Client (logged_in = {}, authorized = {})>'.format(logged_in_state, self.authstate)
         return str_representation
 
-    def headers(self):
+    def headers(self, mode=None):
         token = self.state['access_token']
+        headers = {'Authorization':f'Bearer {token}'}
         if mode == 'application/json':
-            headers = {'Authorization':f'Bearer {token}'}
+            headers['Content-type'] = 'application/json'
         return headers
 
     def api_endpoint(self, url):
         if urllib.parse.urlparse(url).scheme in ['http', 'https']:
             return url
-        return urllib.parse.urljoin(self.config['resource'] + self.config['api_version'] + '/',urllstrip('/'))
+        return urllib.parse.urljoin(self.config['resource'] + self.config['api_version'] + '/', url.lstrip('/'))
     def state_manager(self, action):
         initialized_state = {'access_token': None,
                              'refresh_token': None,
@@ -76,13 +78,13 @@ class TDClient():
         file_path = os.path.join(dir_path, filename)
         if action == 'init':
             self.state = initialized_state
-            if self.config['cache_state'] and os.path.isfile(filename):
+            if self.config['cache_state'] and os.path.isfile(file_path):
                 with open(file_path, 'r') as fileHandle:
                     self.state.update(json.load(fileHandle))
-            elif not self.config['cache_state'] and os.path.isfile(filename):
-                os.remove(filename)
+            elif not self.config['cache_state'] and os.path.isfile(os.path.join(dir_path,filename)):
+                os.remove(file_path)
         elif action == 'save' and self.config['cache_state']:
-            with open(filename, 'w') as fileHandle:
+            with open(file_path, 'w') as fileHandle:
                 json_string = {key:self.state[key] for key in initialized_state}
                 json.dump(json_string, fileHandle)
     def login(self):
@@ -121,7 +123,7 @@ class TDClient():
         if token_response and token_response.ok:
             self.state_manager('save')
     def silent_sso(self):
-        if self.token_seconds() > 0:
+        if self.token_seconds(token_type='access_token') > 0:
             return True
         elif self.token_seconds(token_type='refresh_token') <= 0:
             return False
@@ -160,30 +162,93 @@ class TDClient():
             self.logout()
             return False
         self.state['access_token'] = json_data['access_token']
-        self.state['loggedin'] = True
-        self.state['token_expires_at'] = time.time() + int(json_data['expires_in'])
         self.state['refresh_token'] = json_data['refresh_token']
+        self.state['loggedin'] = True
+        self.state['access_token_expires_at'] = time.time() + int(json_data['expires_in'])
+        self.state['refresh_token_expires_at'] = time.time() + int(json_data['refresh_token_expires_in'])
+        return True
     def token_seconds(self, token_type = 'access_token'):
         if token_type == 'access_token':
             if not self.state['access_token'] or time.time() >= self.state['access_token_expires_at']:
                 return 0
-            token_exp = int(
-                self.state['access_token_expires_at'] - time.time())
+            token_exp = int(self.state['access_token_expires_at'] - time.time())
         elif token_type == 'refresh_token':
             if not self.state['refresh_token'] or time.time() >= self.state['refresh_token_expires_at']:
                 return 0
-            token_exp = int(
-                self.state['refresh_token_expires_at'] - time.time())
+            token_exp = int(self.state['refresh_token_expires_at'] - time.time())
         return token_exp
     def token_validation(self, nseconds = 5):
         if self.token_seconds() < nseconds and self.config['refresh_enabled']:
             self.token_refresh()
     def _create_token_timestamp(self, token_timestamp = None):
-        token_timestamp = dateutil.parser.parse(token_timestamp, ignoretz=True)
-        epoch = datetime._datetime__setstate.utcfromtimestamp(0)
-        return int((tiken_timestamp - epoch).total_seconds() * 1000)
+        token_timestamp = datetime.strptime(token_timestamp, "%Y-%m-%dT%H:%M:%S%z")
+        token_timestamp = int(token_timestamp.timestamp()) * 1000
+        return token_timestamp
+
+
+
+    def validate_arguments(self, endpoint=None, parameter_name=None, parameter_argument=None):
+        parameters_dictionary = self.endpoint_arguments[endpoint]
+        parameter_possible_arguments = parameters_dictionary[parameter_name]
+        if type(parameter_argument) is list:
+            validation_result = [
+                argument not in parameter_possible_arguments for argument in parameter_argument]
+            if any(validation_result):
+                print('\nThe value you passed through is not valid, please choose one of the following valid values: {} \n'.format(
+                    ' ,'.join(parameter_possible_arguments)))
+                raise ValueError('Invalid Value.')
+            elif not any(validation_result):
+                return True
+        elif parameter_argument not in parameter_possible_arguments:
+            print('\nThe value you passed through is not valid, please choose one of the following valid values: {} \n'.upper(
+            ).format(' ,'.join(parameter_possible_arguments)))
+            raise ValueError('Invalid Value.')
+        elif parameter_argument in parameter_possible_arguments:
+            return True
+    def prepare_arguments_list(self, parameter_list=None):
+        if type(parameter_list) is list:
+            delimeter = ','
+            parameter_list = delimeter.join(parameter_list)
+        return parameter_list
+    def get_quotes(self, instruments=None):
+        self.token_validation()
+        merged_headers = self.headers()
+        instruments = self.prepare_arguments_list(parameter_list=instruments)
+        data = {'apikey': self.config['consumer_id'],
+                'symbol': instruments}
+        endpoint = '/marketdata/quotes'
+        url = self.api_endpoint(endpoint)
+        return requests.get(url=url, headers=merged_headers, params=data, verify=True).json()
+    def get_user_principals(self, fields=None):
+        self.token_validation()
+        self.validate_arguments(endpoint='get_user_principals',
+                                parameter_name='fields', parameter_argument=fields)
+        merged_headers = self.headers()
+        fields = self.prepare_arguments_list(parameter_list=fields)
+        endpoint = '/userprincipals'
+        data = {'fields': fields}
+        url = self.api_endpoint(endpoint)
+        return requests.get(url=url, headers=merged_headers, params=data, verify=True).json()
     def create_streaming_session(self):
         userPrincipalsResponse = self.get_user_principals(fields = ['streamerConnectionInfo'])
-        return userPrincipalsResponse
+        tokenTimeStamp = userPrincipalsResponse['streamerInfo']['tokenTimestamp']
+        socket_url = userPrincipalsResponse['streamerInfo']['streamerSocketUrl']
+        tokenTimeStampAsMs = self._create_token_timestamp(token_timestamp=tokenTimeStamp)
+        print(tokenTimeStamp, socket_url,tokenTimeStampAsMs)
+        credentials = {'userid':userPrincipalsResponse['accounts'][0]['accountId'],
+                       'token':userPrincipalsResponse['streamerInfo']['token'],
+                       'company':userPrincipalsResponse['accounts'][0]['company'],
+                       'segment':userPrincipalsResponse['accounts'][0]['segment'],
+                       'cddomain':userPrincipalsResponse['accounts'][0]['accountCdDomainId'],
+                       'usergroup':userPrincipalsResponse['streamerInfo']['userGroup'],
+                       'accesslevel':userPrincipalsResponse['streamerInfo']['accessLevel'],
+                       'authorized':'Y',
+                       'timestamp':int(tokenTimeStampAsMs),
+                       'appid':userPrincipalsResponse['streamerInfo']['appId'],
+                       'acl':userPrincipalsResponse['streamerInfo']['acl'],
+                     }
+        streaming_session = TDStreamerClient(websocket_url=socket_url, user_principal_data=userPrincipalsResponse,credentials=credentials)
+        return streaming_session
+
       
 
