@@ -7,21 +7,35 @@ import signal
 import urllib
 import dateutil.parser
 import websockets
-from Fields import STREAM_FIELD_IDS, STREAM_FIELD_KEYS
+from Fields import STREAM_FIELD_IDS, CSV_FIELD_KEYS
+import csv
 
 class TDStreamerClient(object):
 
-
-    def __init__(self,websocket_url=None, user_principal_data=None, credentials=None):
+    def __init__(self,websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
         self.websocket_url = "wss://{}/ws".format(websocket_url)
         self.credentials = credentials
         self.user_principal_data = user_principal_data
         self.connection = None
         self.data_requests = {'requests': []}
         self.fields_ids_dictionary = STREAM_FIELD_IDS
-        self.fields_keys_dictionary = STREAM_FIELD_KEYS 
-
-
+        self.fields_keys_write = CSV_FIELD_KEYS
+        if append_mode == True:
+            self.CSV_APPEND_MODE = True
+        elif append_mode == False:
+            self.CSV_APPEND_MODE = False
+    async def _write_to_csv(self, data = None):
+        Symbol = data[0]['content'][0]['key']
+        AskPrice = data[0]['content'][0]['3']
+        if self.CSV_APPEND_MODE == True:
+            csv_write_mode = 'a+'
+        else:
+            csv_write_mode = 'w'
+        with open('stream_data.csv', mode = csv_write_mode, newline='') as stream_file:           
+            stream_writer = csv.writer(stream_file)
+            print('writing')
+            data = [Symbol, AskPrice]
+            stream_writer.writerow(data)
     def _build_login_request(self):
             login_request = {'requests': [{'service': 'ADMIN',
                                    'command': 'LOGIN',
@@ -36,20 +50,18 @@ class TDStreamerClient(object):
                                   ]
                             }
             return json.dumps(login_request)
-
     def set_default(self,obj):
         if isinstance(obj, set):
             return list(obj)
     def stream(self):
         login_request = self._build_login_request()
-        data_request = json.dumps(self.data_requests, default=self.set_default)        
+        data_request = json.dumps(self.data_requests)#, default=self.set_default)        
         self.loop = asyncio.get_event_loop()
         connection = self.loop.run_until_complete(self._connect())
-        tasks = [asyncio.ensure_future(self._receive_message(connection)),
-                 asyncio.ensure_future(self._send_message(login_request)),
-                 asyncio.ensure_future(self._send_message(data_request))
-                ]
-        self.loop.run_until_complete(asyncio.wait(tasks))
+        asyncio.ensure_future(self._receive_message(connection)),
+        asyncio.ensure_future(self._send_message(login_request)),
+        asyncio.ensure_future(self._send_message(data_request))
+        self.loop.run_forever()
     def close_stream(self):
         request = self._new_requst_template()
         request = self._new_requst_template()
@@ -72,18 +84,19 @@ class TDStreamerClient(object):
     async def _send_message(self, message=None):
         await self.connection.send(message)
     async def _receive_message(self, connection):
+        approved_writes = list(self.fields_keys_write.keys())
         while True:
             try:
                 message = await self.connection.recv()
                 try:
                     message_decoded = json.loads(message)
                     if 'data' in message_decoded.keys():
-                        data = message_decoded['data'][0]
-                        print(data)
+                        if message_decoded['data'][0]['service'] in approved_writes:
+                            await self._write_to_csv(data = message_decoded['data'])
                 except:
                     message_decoded = message
                 print('-'*20)
-                print('Received message from server: ' + str(message_decoded))
+                print('Received message from server: {}'.format(str(message_decoded)))
             except websockets.exceptions.ConnectionClosed:
                 print('Connection with server closed')
                 break
@@ -106,20 +119,24 @@ class TDStreamerClient(object):
         if isinstance(argument, list):
             arg_list = []
             for arg in argument:
-                if isinstance(arg, int) and str(arg) in self.fields_ids_dictionary[endpoint]:
-                    arg_list.append(str(arg))
-                elif isinstance(arg, str) and arg in self.fields_keys_dictionary[endpoint]:
-                    arg_list.append(str(self.fields_keys_dictionary[endpoint][arg]))
+                arg_str = str(arg)
+                key_list = list(self.fields_ids_dictionary[endpoint].keys())
+                val_list = list(self.fields_ids_dictionary[endpoint].values())
+                if arg_str in key_list:
+                    arg_list.append(arg_str)
+                elif arg_str in val_list:
+                    key_value = key_list[val_list.index(arg_str)]
+                    arg_list.append(key_value)                  
             return arg_list
         else:
-            if isinstance(argument, int) and str(argument) in self.fields_ids_dictionary[endpoint]:
-                argument = str(argument)
-                return argument
-            elif isinstance(argument, str) and argument in self.fields_keys_dictionary[endpoint]:
-                argument = self.fields_keys_dictionary[endpoint][argument]
-                return argument
-            else:
-                return None
+            arg_str = str(argument)
+            key_list = list(self.fields_ids_dictionary[endpoint].keys())
+            val_list = list(self.fields_ids_dictionary[endpoint].values())
+            if arg_str in key_list:
+                arg_list.append(arg_str)
+            elif arg_str in val_list:
+                key_value = key_list[val_list.index(arg_str)]
+                arg_list.append(key_value)
     def quality_of_service(self, qos_level=None):
         qos_level = self._validate_argument(argument=qos_level, endpoint='qos_request')
         if qos_level is not None:
@@ -130,12 +147,13 @@ class TDStreamerClient(object):
             self.data_requests['requests'].append(requests)
         else:
             raise ValueError('Error')
-
-    def level_two_quotes(self, symbols=None, fields=None):
+    def level_one_quote(self, symbols=None, fields=None):
+        fields = self._validate_argument(argument=fields, endpoint='level_one_quote')
         request = self._new_request_template()
-        request['service'] = 'LISTED_BOOK'
+        request['service'] = 'QUOTE'
         request['command'] = 'SUBS'
         request['parameters']['keys'] = ','.join(symbols)
         request['parameters']['fields'] = ','.join(fields)
         self.data_requests['requests'].append(request)
+
 

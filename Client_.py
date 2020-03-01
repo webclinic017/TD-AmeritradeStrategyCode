@@ -51,14 +51,12 @@ class TDClient():
 
         str_representation = '<TDAmeritrade Client (logged_in = {}, authorized = {})>'.format(logged_in_state, self.authstate)
         return str_representation
-
     def headers(self, mode=None):
         token = self.state['access_token']
         headers = {'Authorization':f'Bearer {token}'}
         if mode == 'application/json':
             headers['Content-type'] = 'application/json'
         return headers
-
     def api_endpoint(self, url):
         if urllib.parse.urlparse(url).scheme in ['http', 'https']:
             return url
@@ -184,9 +182,9 @@ class TDClient():
         token_timestamp = datetime.strptime(token_timestamp, "%Y-%m-%dT%H:%M:%S%z")
         token_timestamp = int(token_timestamp.timestamp()) * 1000
         return token_timestamp
-
-
-
+#
+#
+# CREATE STREAMING SESSION
     def validate_arguments(self, endpoint=None, parameter_name=None, parameter_argument=None):
         parameters_dictionary = self.endpoint_arguments[endpoint]
         parameter_possible_arguments = parameters_dictionary[parameter_name]
@@ -221,8 +219,7 @@ class TDClient():
         return requests.get(url=url, headers=merged_headers, params=data, verify=True).json()
     def get_user_principals(self, fields=None):
         self.token_validation()
-        self.validate_arguments(endpoint='get_user_principals',
-                                parameter_name='fields', parameter_argument=fields)
+        self.validate_arguments(endpoint='get_user_principals',parameter_name='fields', parameter_argument=fields)
         merged_headers = self.headers()
         fields = self.prepare_arguments_list(parameter_list=fields)
         endpoint = '/userprincipals'
