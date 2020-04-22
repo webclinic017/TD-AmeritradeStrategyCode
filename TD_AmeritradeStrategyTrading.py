@@ -12,6 +12,8 @@ TDSession = TDClient(account_number = accntNmber,
 TDSession.login()
 print(TDSession.state['loggedin'])
 print(TDSession.authstate)
+print(TDSession.epoch_datetime())
+print(TDSession.Historical_Endpoint())
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
 TDStreamer.level_one_quote(symbols=['IBM'], fields=['0','1','2','3'])

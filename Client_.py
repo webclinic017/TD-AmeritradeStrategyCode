@@ -10,6 +10,7 @@ import json
 import requests
 import dateutil.parser
 from datetime import datetime
+from datetime import timedelta
 import time
 import csv
 import pandas as pd
@@ -253,14 +254,15 @@ class TDClient():
             csvread = csv.reader(Data)
             symbols = list(csvread)
         return symbols
-    def epoch_datetime(self):
+    def epoch_datetime(self, epoch=None, ):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
-        return TimeDay
-        return TimeSec
-
-
-    def Historical_Endpoint():
+        Minus20Day = datetime.now() - timedelta(days=20)
+        for days in range(1,20,1):
+            epoch = (datetime.now() - timedelta(days)).timestamp()
+            print(epoch)
+        #return epoch
+    def Historical_Endpoint(self):
         # daily proces endpoint
         historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format('IBM')
         # define a payload
@@ -269,8 +271,8 @@ class TDClient():
                              'frequencytype':'minute',
                              'frequency':'1',
                              'period':'2',
-                             'endDate':'1585520735',
-                             'startDate':'1578448929',
+                             'endDate':(datetime.now()).timestamp(),
+                             'startDate':self.epoch_datetime(),
                              'needExtendedHoursData':'true'}
         # make a request
         historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
