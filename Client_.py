@@ -11,6 +11,9 @@ import requests
 import dateutil.parser
 from datetime import datetime
 import time
+import csv
+import pandas as pd
+
 
 class TDClient():
 
@@ -40,7 +43,6 @@ class TDClient():
                 raise KeyError('Invalid Argument Name.')
         self.config.update(kwargs.items())
         self.state_manager('init')
-
         self.authstate = False
 
     def __repr__(self):
@@ -246,6 +248,38 @@ class TDClient():
                      }
         streaming_session = TDStreamerClient(websocket_url=socket_url, user_principal_data=userPrincipalsResponse,credentials=credentials)
         return streaming_session
+    def multiple_symbol_watchlist(self):
+        with open('WatchList.csv') as Data:
+            csvread = csv.reader(Data)
+            symbols = list(csvread)
+        return symbols
+    def epoch_datetime(self):
+        TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
+        TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
+        return TimeDay
+        return TimeSec
+
+
+    def Historical_Endpoint():
+        # daily proces endpoint
+        historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format('IBM')
+        # define a payload
+        historicalPayload = {'apikey':client_id,
+                             'periodType':'day',
+                             'frequencytype':'minute',
+                             'frequency':'1',
+                             'period':'2',
+                             'endDate':'1585520735',
+                             'startDate':'1578448929',
+                             'needExtendedHoursData':'true'}
+        # make a request
+        historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
+        # convert it to a dictionary
+        historicalData = historicalContent.json()
+        print(historicalData)
+
+
+
 
       
 

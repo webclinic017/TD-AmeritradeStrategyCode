@@ -9,6 +9,13 @@ import dateutil.parser
 import websockets
 from Fields import STREAM_FIELD_IDS, CSV_FIELD_KEYS
 import csv
+import matplotlib.pyplot as plt
+from mpl_finance import candlestick_ohlc
+import pandas as pd
+import matplotlib.dates as mpl_dates
+from matplotlib.animation import FuncAnimation
+import datetime
+import time
 
 class TDStreamerClient(object):
 
@@ -24,9 +31,11 @@ class TDStreamerClient(object):
             self.CSV_APPEND_MODE = True
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
-    async def _write_to_csv(self, data = None):
+    async def _write_to_csv(self, data=None):
         Symbol = data[0]['content'][0]['key']
         AskPrice = data[0]['content'][0]['3']
+        #DateTime = self.epoch_to_datetime()
+        TimeSec = time.strftime('%I:%M:%S', time.localtime())
         if self.CSV_APPEND_MODE == True:
             csv_write_mode = 'a+'
         else:
@@ -34,8 +43,14 @@ class TDStreamerClient(object):
         with open('stream_data.csv', mode = csv_write_mode, newline='') as stream_file:           
             stream_writer = csv.writer(stream_file)
             print('writing')
-            data = [Symbol, AskPrice]
+            data = [Symbol, AskPrice, TimeSec]
             stream_writer.writerow(data)
+    async def epoch_to_datetime(self, data=None, TimeSec=None):
+        timestamp = data[0]['timestamp']
+        TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
+        TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
+        return TimeDay
+        return TimeSec
     def _build_login_request(self):
             login_request = {'requests': [{'service': 'ADMIN',
                                    'command': 'LOGIN',
@@ -93,6 +108,7 @@ class TDStreamerClient(object):
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
                             await self._write_to_csv(data = message_decoded['data'])
+                            await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
                 print('-'*20)
@@ -137,6 +153,7 @@ class TDStreamerClient(object):
             elif arg_str in val_list:
                 key_value = key_list[val_list.index(arg_str)]
                 arg_list.append(key_value)
+
     def quality_of_service(self, qos_level=None):
         qos_level = self._validate_argument(argument=qos_level, endpoint='qos_request')
         if qos_level is not None:
@@ -152,8 +169,7 @@ class TDStreamerClient(object):
         request = self._new_request_template()
         request['service'] = 'QUOTE'
         request['command'] = 'SUBS'
-        request['parameters']['keys'] = ','.join(symbols)
-        request['parameters']['fields'] = ','.join(fields)
+        request['parameters']['keys'] = ','.join(symbols)#(str(v) for v in symbols)
+        quoteData = request['parameters']['fields'] = ','.join(fields)
         self.data_requests['requests'].append(request)
-
 
