@@ -14,7 +14,7 @@ from datetime import timedelta
 import time
 import csv
 import pandas as pd
-
+import numpy as np
 
 class TDClient():
 
@@ -22,6 +22,7 @@ class TDClient():
         self.config = {'consumer_id': client_id,
                        'account_number': accntNmber,
                        'account_password': password,
+                       'api_endpoint': 'https://api.tdameritrade.com',
                        'redirect_uri': redirect_uri,
                        'resource': 'https://api.tdameritrade.com',
                        'api_version': '/v1',
@@ -51,19 +52,20 @@ class TDClient():
             logged_in_state = 'True'
         else:
             logged_in_state = 'False'
-
         str_representation = '<TDAmeritrade Client (logged_in = {}, authorized = {})>'.format(logged_in_state, self.authstate)
         return str_representation
-    def headers(self, mode=None):
+    def headers(self, mode=None) -> dict:
         token = self.state['access_token']
         headers = {'Authorization':f'Bearer {token}'}
         if mode == 'application/json':
             headers['Content-type'] = 'application/json'
         return headers
-    def api_endpoint(self, url):
-        if urllib.parse.urlparse(url).scheme in ['http', 'https']:
-            return url
-        return urllib.parse.urljoin(self.config['resource'] + self.config['api_version'] + '/', url.lstrip('/'))
+    def api_endpoint(self, endpoint: str, resource: str = None) -> str:
+        if resource:
+            parts = [resource, self.config['api_version'], endpoint]
+        else:
+            parts = [self.config['api_endpoint'], self.config['api_version'], endpoint]
+        return '/'.join(parts)
     def state_manager(self, action):
         initialized_state = {'access_token': None,
                              'refresh_token': None,
@@ -254,32 +256,37 @@ class TDClient():
             csvread = csv.reader(Data)
             symbols = list(csvread)
         return symbols
-    def epoch_datetime(self, epoch=None, ):
+    def epoch_datetime(self):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
-        Minus20Day = datetime.now() - timedelta(days=20)
+        Minus20Day = (datetime.now() - timedelta(days=20))
         for days in range(1,20,1):
-            epoch = (datetime.now() - timedelta(days)).timestamp()
+            epoch = ((datetime.now() - timedelta(days)).timestamp()) * 1000
             print(epoch)
         #return epoch
-    def Historical_Endpoint(self):
+    def Historical_Endpoint(self, symbol: str, period_type:str = None, period=None, start_date:str = None, end_date:str = None, frequency_type: str = None, frequency: str = None, extended_hours: bool = True):
+        #Historical Data
         # daily proces endpoint
-        historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format('IBM')
+        historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format(symbol)
         # define a payload
         historicalPayload = {'apikey':client_id,
-                             'periodType':'day',
-                             'frequencytype':'minute',
-                             'frequency':'1',
-                             'period':'2',
-                             'endDate':(datetime.now()).timestamp(),
-                             'startDate':self.epoch_datetime(),
-                             'needExtendedHoursData':'true'}
+                             'period': period,
+                             'periodType': period_type,
+                             'startDate': start_date,
+                             'endDate': end_date,
+                             'frequency': frequency,
+                             'frequencyType': frequency_type,
+                             'needExtendedHoursData': extended_hours
+                             }
         # make a request
         historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
         # convert it to a dictionary
         historicalData = historicalContent.json()
-        print(historicalData)
-
+        Open = historicalData['candles'][0]['open']
+        High = historicalData['candles'][0]['high']
+        Low = historicalData['candles'][0]['low']
+        Close = historicalData['candles'][0]['close']
+        print(Close)
 
 
 
