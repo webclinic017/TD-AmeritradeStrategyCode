@@ -1,5 +1,4 @@
 from config import client_id,accntNmber,password,redirect_uri
-from TDameritrade_authorization import TDAuthentication
 from Stream import TDStreamerClient
 import urllib.parse
 from urllib.parse import urlparse
@@ -46,7 +45,6 @@ class TDClient():
         self.config.update(kwargs.items())
         self.state_manager('init')
         self.authstate = False
-
     def __repr__(self):
         if self.state['loggedin']:
             logged_in_state = 'True'
@@ -102,9 +100,6 @@ class TDClient():
         params = urllib.parse.urlencode(payload)
         url = self.config['auth_endpoint'] + params
         self.state['authorization_url'] = url
-        #TDAuthentication(client_id,accntNmber,password)
-        #TDAuthentication._get_access_code(self)
-        #TDAuthentication.authenticate(self)
         print('Please go to url provided authorize your account: {}'.format(self.state['authorization_url']))
         my_response = input('Paste the full URL resirect here: ')
         self.state['redirect_code'] = my_response
@@ -187,8 +182,6 @@ class TDClient():
         token_timestamp = datetime.strptime(token_timestamp, "%Y-%m-%dT%H:%M:%S%z")
         token_timestamp = int(token_timestamp.timestamp()) * 1000
         return token_timestamp
-#
-#
 # CREATE STREAMING SESSION
     def validate_arguments(self, endpoint=None, parameter_name=None, parameter_argument=None):
         parameters_dictionary = self.endpoint_arguments[endpoint]
@@ -282,11 +275,22 @@ class TDClient():
         historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
         # convert it to a dictionary
         historicalData = historicalContent.json()
+        #Store each parameter as a variable and create an array
         Open = historicalData['candles'][0]['open']
         High = historicalData['candles'][0]['high']
         Low = historicalData['candles'][0]['low']
         Close = historicalData['candles'][0]['close']
-        print(Close)
+        Volume = historicalData['candles'][0]['volume']
+        DateTime = historicalData['candles'][0]['datetime'] / 1000
+        Day_time = datetime.fromtimestamp(DateTime).strftime('%Y-%m-%d')
+        OHLC = {'Date':[Day_time],'Open':[Open],'High':[High],'Low':[Low],'Close':[Close],'Volume':[Volume]}
+        # You will need to write a function for this with an append process
+        with open('OHLC.csv', newline='') as OHLC_file:           
+            OHLC_writer = csv.writer(OHLC_file)
+            data = [Day_time, Open, High, Low, Close]
+            OHLC_writer.writerow(data)
+        #df_OHLC = pd.DataFrame(data=OHLC)
+        #print(df_OHLC)
 
 
 

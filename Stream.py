@@ -9,11 +9,7 @@ import dateutil.parser
 import websockets
 from Fields import STREAM_FIELD_IDS, CSV_FIELD_KEYS
 import csv
-import matplotlib.pyplot as plt
-from mpl_finance import candlestick_ohlc
 import pandas as pd
-import matplotlib.dates as mpl_dates
-from matplotlib.animation import FuncAnimation
 import datetime
 import time
 
@@ -153,7 +149,6 @@ class TDStreamerClient(object):
             elif arg_str in val_list:
                 key_value = key_list[val_list.index(arg_str)]
                 arg_list.append(key_value)
-
     def quality_of_service(self, qos_level=None):
         qos_level = self._validate_argument(argument=qos_level, endpoint='qos_request')
         if qos_level is not None:

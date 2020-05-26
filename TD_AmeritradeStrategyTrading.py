@@ -3,12 +3,14 @@ from config import client_id, password, accntNmber, userName
 from datetime import datetime
 from datetime import timedelta
 import json
+from Backtrader import Backtrader_main_
 #Inputs
 #
-Num_DayMAInputs = 40
+Num_DayMAInputs = 10
 symbol = 'USO'
 #
 #initialize new session with accnt info and caching false
+'''
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
                       redirect_uri = 'http://localhost/',
@@ -45,3 +47,10 @@ TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
 TDStreamer.level_one_quote(symbols=[symbol], fields=['0','1','2','3'])
 TDStreamer.stream()
+'''
+#
+#Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
+    #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
+        #https://community.backtrader.com/topic/122/bband-strategy
+#Run Backtrader
+RunBacktrader = Backtrader_main_._Backtrader_()
