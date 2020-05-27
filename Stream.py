@@ -14,7 +14,6 @@ import datetime
 import time
 
 class TDStreamerClient(object):
-
     def __init__(self,websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
         self.websocket_url = "wss://{}/ws".format(websocket_url)
         self.credentials = credentials
@@ -27,11 +26,17 @@ class TDStreamerClient(object):
             self.CSV_APPEND_MODE = True
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
+    def symbol_numbers(self):
+        with open('WatchList.csv', newline='') as watchlist:
+            WatchList = csv.reader(watchlist, delimiter=',')
+            for Symbol in WatchList:
+                SymNum = len(Symbol)
+                return SymNum
     async def _write_to_csv(self, data=None):
         #Enter number of symbols on watchlist
         #Future use a for loop to determine number of symbols in csv
-        SymNum = 2
-        i=1
+        SymNum = self.symbol_numbers()
+        i=0
         while i <= SymNum:
             Symbol = data[0]['content'][i]['key']
             AskPrice = data[0]['content'][i]['3']

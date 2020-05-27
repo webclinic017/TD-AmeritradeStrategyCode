@@ -244,11 +244,12 @@ class TDClient():
                      }
         streaming_session = TDStreamerClient(websocket_url=socket_url, user_principal_data=userPrincipalsResponse,credentials=credentials)
         return streaming_session
-    def multiple_symbol_watchlist(self):
-        with open('WatchList.csv') as Data:
-            csvread = csv.reader(Data)
-            symbols = list(csvread)
-        return symbols
+    def multiple_symbol_watchlist(self, symbols=None):
+        with open('WatchList.csv', newline='') as watchlist:
+            WatchList = csv.reader(watchlist, delimiter=',')
+            for Symbol in WatchList:
+                symbols = Symbol
+                return symbols
     def epoch_datetime(self):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 

@@ -7,15 +7,6 @@ import json
 import pandas as pd
 import numpy as np
 import csv
-#Inputs
-#
-Num_DayMAInputs = 10
-with open('WatchList.csv', newline='') as watchlist:
-    WatchList = csv.reader(watchlist, delimiter=' ')
-    for Symbol in WatchList:
-        print(Symbol)
-symbol = ['USO','MSFT']
-#
 #initialize new session with accnt info and caching false
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
@@ -26,7 +17,16 @@ TDSession = TDClient(account_number = accntNmber,
 TDSession.login()
 print(TDSession.state['loggedin'])
 print(TDSession.authstate)
+#Inputs
+#
+Num_DayMAInputs = 10
+symbol = TDSession.multiple_symbol_watchlist()
 '''
+with open('WatchList.csv', newline='') as watchlist:
+    WatchList = csv.reader(watchlist, delimiter=',')
+    for Symbol in WatchList:
+        symbol = Symbol
+        print(symbol)
 #Method1: Bollinger Bands
 #
 #Define parameters for Candles Data Open High Low Close (OHLC)
