@@ -2,15 +2,21 @@ from Client_ import TDClient
 from config import client_id, password, accntNmber, userName
 from datetime import datetime
 from datetime import timedelta
-import json
 from Backtrader import Backtrader_main_
+import json
+import pandas as pd
+import numpy as np
+import csv
 #Inputs
 #
 Num_DayMAInputs = 10
-symbol = 'USO'
+with open('WatchList.csv', newline='') as watchlist:
+    WatchList = csv.reader(watchlist, delimiter=' ')
+    for Symbol in WatchList:
+        print(Symbol)
+symbol = ['USO','MSFT']
 #
 #initialize new session with accnt info and caching false
-'''
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
                       redirect_uri = 'http://localhost/',
@@ -20,6 +26,7 @@ TDSession = TDClient(account_number = accntNmber,
 TDSession.login()
 print(TDSession.state['loggedin'])
 print(TDSession.authstate)
+'''
 #Method1: Bollinger Bands
 #
 #Define parameters for Candles Data Open High Low Close (OHLC)
@@ -42,12 +49,12 @@ for days in range (1,Num_dayMA,1):
                                             extended_hours=hist_needExtendedHoursData
                                            )
 #
+'''
 #Start Straming Session
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
-TDStreamer.level_one_quote(symbols=[symbol], fields=['0','1','2','3'])
+TDStreamer.level_one_quote(symbols=symbol, fields=['0','1','2','3'])
 TDStreamer.stream()
-'''
 #
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f

@@ -284,7 +284,7 @@ class TDClient():
         DateTime = historicalData['candles'][0]['datetime'] / 1000
         Day_time = datetime.fromtimestamp(DateTime).strftime('%Y-%m-%d')
         OHLC = {'Date':[Day_time],'Open':[Open],'High':[High],'Low':[Low],'Close':[Close],'Volume':[Volume]}
-        # You will need to write a function for this with an append process
+        #You will need to write a function for this with an append process
         with open('OHLC.csv', newline='') as OHLC_file:           
             OHLC_writer = csv.writer(OHLC_file)
             data = [Day_time, Open, High, Low, Close]

@@ -28,19 +28,25 @@ class TDStreamerClient(object):
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
     async def _write_to_csv(self, data=None):
-        Symbol = data[0]['content'][0]['key']
-        AskPrice = data[0]['content'][0]['3']
-        #DateTime = self.epoch_to_datetime()
-        TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        if self.CSV_APPEND_MODE == True:
-            csv_write_mode = 'a+'
-        else:
-            csv_write_mode = 'w'
-        with open('stream_data.csv', mode = csv_write_mode, newline='') as stream_file:           
-            stream_writer = csv.writer(stream_file)
-            print('writing')
-            data = [Symbol, AskPrice, TimeSec]
-            stream_writer.writerow(data)
+        #Enter number of symbols on watchlist
+        #Future use a for loop to determine number of symbols in csv
+        SymNum = 2
+        i=1
+        while i <= SymNum:
+            Symbol = data[0]['content'][i]['key']
+            AskPrice = data[0]['content'][i]['3']
+            #DateTime = self.epoch_to_datetime()
+            TimeSec = time.strftime('%I:%M:%S', time.localtime())
+            if self.CSV_APPEND_MODE == True:
+                csv_write_mode = 'a+'
+            else:
+                csv_write_mode = 'w'
+            with open('stream_data.csv', mode = csv_write_mode, newline='') as stream_file:           
+                stream_writer = csv.writer(stream_file)
+                print('writing')
+                data = [Symbol, AskPrice, TimeSec]
+                stream_writer.writerow(data)
+            i = i + 1
     async def epoch_to_datetime(self, data=None, TimeSec=None):
         timestamp = data[0]['timestamp']
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
@@ -164,7 +170,7 @@ class TDStreamerClient(object):
         request = self._new_request_template()
         request['service'] = 'QUOTE'
         request['command'] = 'SUBS'
-        request['parameters']['keys'] = ','.join(symbols)#(str(v) for v in symbols)
+        request['parameters']['keys'] = ','.join(str(v) for v in symbols)
         quoteData = request['parameters']['fields'] = ','.join(fields)
         self.data_requests['requests'].append(request)
 
