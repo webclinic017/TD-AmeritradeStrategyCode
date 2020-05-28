@@ -14,7 +14,7 @@ import datetime
 import time
 
 class TDStreamerClient(object):
-    def __init__(self,websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
+    def __init__(self, websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
         self.websocket_url = "wss://{}/ws".format(websocket_url)
         self.credentials = credentials
         self.user_principal_data = user_principal_data
@@ -32,9 +32,7 @@ class TDStreamerClient(object):
             for Symbol in WatchList:
                 SymNum = len(Symbol)
                 return SymNum
-    async def _write_to_csv(self, data=None):
-        #Enter number of symbols on watchlist
-        #Future use a for loop to determine number of symbols in csv
+    async def _write_stream_to_csv(self, data=None):
         SymNum = self.symbol_numbers()
         i=0
         while i <= SymNum:
@@ -114,7 +112,7 @@ class TDStreamerClient(object):
                     message_decoded = json.loads(message)
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
-                            await self._write_to_csv(data = message_decoded['data'])
+                            await self._write_stream_to_csv(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message

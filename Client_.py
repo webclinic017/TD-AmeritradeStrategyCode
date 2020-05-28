@@ -1,19 +1,20 @@
 from config import client_id,accntNmber,password,redirect_uri
 from Stream import TDStreamerClient
-import urllib.parse
 from urllib.parse import urlparse
+from datetime import datetime
+from datetime import timedelta
+import urllib.parse
 import urllib3
 import uuid
 import os
 import json
 import requests
 import dateutil.parser
-from datetime import datetime
-from datetime import timedelta
 import time
 import csv
 import pandas as pd
 import numpy as np
+import os
 
 class TDClient():
 
@@ -244,6 +245,7 @@ class TDClient():
                      }
         streaming_session = TDStreamerClient(websocket_url=socket_url, user_principal_data=userPrincipalsResponse,credentials=credentials)
         return streaming_session
+#Reads the tickers you have added to the watchlist.csv togather OHLC and streaming price data
     def multiple_symbol_watchlist(self, symbols=None):
         with open('WatchList.csv', newline='') as watchlist:
             WatchList = csv.reader(watchlist, delimiter=',')
@@ -254,11 +256,20 @@ class TDClient():
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
         Minus20Day = (datetime.now() - timedelta(days=20))
-        for days in range(1,20,1):
-            epoch = ((datetime.now() - timedelta(days)).timestamp()) * 1000
-            print(epoch)
-        #return epoch
-    def Historical_Endpoint(self, symbol: str, period_type:str = None, period=None, start_date:str = None, end_date:str = None, frequency_type: str = None, frequency: str = None, extended_hours: bool = True):
+        #for days in range(1,20,1):
+        #    epoch = ((datetime.now() - timedelta(days)).timestamp()) * 1000
+        return TimeDay
+#Interfaces with TD Historical Endpoint to gather OHLC Data called from TDAmaeritrade startegy
+    #Have OHLC file to plot Candlestick plots for each symbol as well as daily price changes
+    def Historical_Endpoint(self, 
+                            symbol:str, 
+                            period_type:str=None, 
+                            period=None,
+                            start_date:str=None, 
+                            end_date:str=None,
+                            frequency_type:str=None,
+                            frequency:str=None,
+                            extended_hours:bool=True):
         #Historical Data
         # daily proces endpoint
         historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format(symbol)
@@ -277,6 +288,7 @@ class TDClient():
         # convert it to a dictionary
         historicalData = historicalContent.json()
         #Store each parameter as a variable and create an array
+        Symbol = historicalData['symbol']
         Open = historicalData['candles'][0]['open']
         High = historicalData['candles'][0]['high']
         Low = historicalData['candles'][0]['low']
@@ -284,16 +296,20 @@ class TDClient():
         Volume = historicalData['candles'][0]['volume']
         DateTime = historicalData['candles'][0]['datetime'] / 1000
         Day_time = datetime.fromtimestamp(DateTime).strftime('%Y-%m-%d')
-        OHLC = {'Date':[Day_time],'Open':[Open],'High':[High],'Low':[Low],'Close':[Close],'Volume':[Volume]}
-        #You will need to write a function for this with an append process
-        with open('OHLC.csv', newline='') as OHLC_file:           
+        OHLC = [Symbol, Day_time, Open, High, Low, Close, Volume]
+        self._write_OHLC_to_csv(OHLC=OHLC, Symbol=Symbol)
+#Writes historical data to OHLC file for multiple Symbols called from TDAmeritrade Strategy
+    #Create seperate file for each symbol and right over data rather than append (Done)
+    #Data files are sreated in the Data Folder(Done)
+        #Create a different folder for each day?
+    #CSV Dates are incorrect
+    def _write_OHLC_to_csv(self, OHLC, Symbol):
+        Date = self.epoch_datetime()
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data')
+        with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
             OHLC_writer = csv.writer(OHLC_file)
-            data = [Day_time, Open, High, Low, Close]
-            OHLC_writer.writerow(data)
-        #df_OHLC = pd.DataFrame(data=OHLC)
-        #print(df_OHLC)
-
-
-
+            historicalData = OHLC
+            OHLC_writer.writerow(historicalData)
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI')
       
 

@@ -4,9 +4,6 @@ from datetime import datetime
 from datetime import timedelta
 from Backtrader import Backtrader_main_
 import json
-import pandas as pd
-import numpy as np
-import csv
 #initialize new session with accnt info and caching false
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
@@ -18,44 +15,35 @@ TDSession.login()
 print(TDSession.state['loggedin'])
 print(TDSession.authstate)
 #Inputs
-#
-Num_DayMAInputs = 10
+#Number of days desired for a moving average
+Num_DayMAInputs = 20
 symbol = TDSession.multiple_symbol_watchlist()
-'''
-with open('WatchList.csv', newline='') as watchlist:
-    WatchList = csv.reader(watchlist, delimiter=',')
-    for Symbol in WatchList:
-        symbol = Symbol
-        print(symbol)
-#Method1: Bollinger Bands
-#
+#OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
-hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
-hist_symbol = symbol
-hist_periodType = 'day'
-hist_frequencyType = 'minute'
-hist_frequency = 1
-hist_needExtendedHoursData = True
-Num_dayMA = Num_DayMAInputs
-for days in range (1,Num_dayMA,1):
-    hist_startDate = str(int(round(((datetime.now() - timedelta(days=days)).timestamp()) * 1000)))
-    X_DayMA = TDSession.Historical_Endpoint(
-                                            symbol=hist_symbol, 
-                                            period_type=hist_periodType,
-                                            frequency_type=hist_frequencyType,
-                                            start_date=hist_startDate,
-                                            end_date=hist_endDate,
-                                            frequency=hist_frequency,
-                                            extended_hours=hist_needExtendedHoursData
-                                           )
-#
-'''
+for Symbol in symbol:
+    hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
+    hist_symbol = Symbol
+    hist_periodType = 'day'
+    hist_frequencyType = 'minute'
+    hist_frequency = 1
+    hist_needExtendedHoursData = True
+    Num_dayMA = Num_DayMAInputs
+    for days in range (1,Num_dayMA,1):
+        hist_startDate = str(int(round(((datetime.now() - timedelta(days=days)).timestamp()) * 1000)))
+        X_DayMA = TDSession.Historical_Endpoint(
+                                                symbol=hist_symbol, 
+                                                period_type=hist_periodType,
+                                                frequency_type=hist_frequencyType,
+                                                start_date=hist_startDate,
+                                                end_date=hist_endDate,
+                                                frequency=hist_frequency,
+                                                extended_hours=hist_needExtendedHoursData
+                                               )
 #Start Straming Session
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
 TDStreamer.level_one_quote(symbols=symbol, fields=['0','1','2','3'])
 TDStreamer.stream()
-#
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy
