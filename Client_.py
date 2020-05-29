@@ -15,6 +15,7 @@ import csv
 import pandas as pd
 import numpy as np
 import os
+from os import path
 
 class TDClient():
 
@@ -301,15 +302,26 @@ class TDClient():
 #Writes historical data to OHLC file for multiple Symbols called from TDAmeritrade Strategy
     #Create seperate file for each symbol and right over data rather than append (Done)
     #Data files are sreated in the Data Folder(Done)
-        #Create a different folder for each day?
-    #CSV Dates are incorrect
+        #Create a different folder for each day(Done)
+    #CSV Dates are incorrect (Accounts for Weekends)
     def _write_OHLC_to_csv(self, OHLC, Symbol):
         Date = self.epoch_datetime()
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data')
-        with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
-            OHLC_writer = csv.writer(OHLC_file)
-            historicalData = OHLC
-            OHLC_writer.writerow(historicalData)
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC'):
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
+                OHLC_writer = csv.writer(OHLC_file)
+                historicalData = OHLC
+                OHLC_writer.writerow(historicalData)
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+        else:
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
+                OHLC_writer = csv.writer(OHLC_file)
+                historicalData = OHLC
+                OHLC_writer.writerow(historicalData)
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')            
+            
       
 

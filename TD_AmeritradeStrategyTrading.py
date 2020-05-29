@@ -15,8 +15,9 @@ TDSession.login()
 print(TDSession.state['loggedin'])
 print(TDSession.authstate)
 #Inputs
-#Number of days desired for a moving average
-Num_DayMAInputs = 20
+#Number of days desired for a moving average 0 is used as a value
+    #e.g. for 10 days of data make the value below 11
+Num_DayMAInputs = 21
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
