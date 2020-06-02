@@ -1,6 +1,7 @@
 import requests
 import asyncio
 import datetime
+from datetime import datetime
 import json
 import pprint
 import signal
@@ -12,10 +13,11 @@ import csv
 import pandas as pd
 import datetime
 import time
+import os
+from os import path
 
 class TDStreamerClient(object):
-
-    def __init__(self,websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
+    def __init__(self, websocket_url=None, user_principal_data=None, credentials=None, write='csv', append_mode=True):
         self.websocket_url = "wss://{}/ws".format(websocket_url)
         self.credentials = credentials
         self.user_principal_data = user_principal_data
@@ -27,20 +29,38 @@ class TDStreamerClient(object):
             self.CSV_APPEND_MODE = True
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
-    async def _write_to_csv(self, data=None):
-        Symbol = data[0]['content'][0]['key']
-        AskPrice = data[0]['content'][0]['3']
-        #DateTime = self.epoch_to_datetime()
+    def symbol_numbers(self):
+        with open('WatchList.csv', newline='') as watchlist:
+            WatchList = csv.reader(watchlist, delimiter=',')
+            for Symbol in WatchList:
+                SymNum = len(Symbol)
+                return SymNum
+    def epoch_datetime(self):
+        TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
+        TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
+        return TimeDay    
+    async def _write_stream_to_csv(self, data=None):
+        Date = self.epoch_datetime()
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        if self.CSV_APPEND_MODE == True:
-            csv_write_mode = 'a+'
-        else:
-            csv_write_mode = 'w'
-        with open('stream_data.csv', mode = csv_write_mode, newline='') as stream_file:           
-            stream_writer = csv.writer(stream_file)
-            print('writing')
-            data = [Symbol, AskPrice, TimeSec]
-            stream_writer.writerow(data)
+        SymNum = self.symbol_numbers()
+        for i in range(SymNum):
+            Symbol = data[0]['content'][i]['key']
+            AskPrice = data[0]['content'][i]['3']
+            if self.CSV_APPEND_MODE == True:
+                csv_write_mode = 'a+'
+            else:
+                csv_write_mode = 'w'   
+            if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+            else:
+                os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')            
+            with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
+                stream_writer = csv.writer(stream_file)
+                print('writing')
+                data = [Symbol, AskPrice, TimeSec]
+                stream_writer.writerow(data)
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
     async def epoch_to_datetime(self, data=None, TimeSec=None):
         timestamp = data[0]['timestamp']
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
@@ -103,7 +123,7 @@ class TDStreamerClient(object):
                     message_decoded = json.loads(message)
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
-                            await self._write_to_csv(data = message_decoded['data'])
+                            await self._write_stream_to_csv(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
@@ -164,7 +184,7 @@ class TDStreamerClient(object):
         request = self._new_request_template()
         request['service'] = 'QUOTE'
         request['command'] = 'SUBS'
-        request['parameters']['keys'] = ','.join(symbols)#(str(v) for v in symbols)
+        request['parameters']['keys'] = ','.join(str(v) for v in symbols)
         quoteData = request['parameters']['fields'] = ','.join(fields)
         self.data_requests['requests'].append(request)
 
