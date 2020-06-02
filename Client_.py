@@ -164,6 +164,7 @@ class TDClient():
         self.state['loggedin'] = True
         self.state['access_token_expires_at'] = time.time() + int(json_data['expires_in'])
         self.state['refresh_token_expires_at'] = time.time() + int(json_data['refresh_token_expires_in'])
+        print(json_data)
         return True
     def token_seconds(self, token_type = 'access_token'):
         if token_type == 'access_token':
