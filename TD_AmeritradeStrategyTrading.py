@@ -13,7 +13,7 @@ TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
                       redirect_uri = 'http://localhost/',
                       consumer_id = client_id,
-                      cache_state = False
+                      #cache_state = True
                      )
 TDSession.login()
 print(TDSession.state['loggedin'])
@@ -23,6 +23,7 @@ print(TDSession.authstate)
     #e.g. for 10 days of data make the value below 11
 Num_DayMAInputs = 21
 symbol = TDSession.multiple_symbol_watchlist()
+'''
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
 for Symbol in symbol:
@@ -52,13 +53,16 @@ def _SMA_():
         dfSMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
     print(dfSMA)
 _SMA_()
+'''
 #Start Straming Session
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
 TDStreamer.level_one_quote(symbols=symbol, fields=['0','1','2','3'])
 TDStreamer.stream()
+'''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy
 #Run Backtrader
 RunBacktrader = Backtrader_main_._Backtrader_()
+'''
