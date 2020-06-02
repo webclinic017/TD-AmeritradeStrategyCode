@@ -4,12 +4,16 @@ from datetime import datetime
 from datetime import timedelta
 from Backtrader import Backtrader_main_
 import json
+import os
+import pandas as pd
+import numpy as np
+import time
 #initialize new session with accnt info and caching false
 TDSession = TDClient(account_number = accntNmber,
                       account_password = password,
                       redirect_uri = 'http://localhost/',
                       consumer_id = client_id,
-                      cache_state = True
+                      cache_state = False
                      )
 TDSession.login()
 print(TDSession.state['loggedin'])
@@ -40,6 +44,14 @@ for Symbol in symbol:
                                                 frequency=hist_frequency,
                                                 extended_hours=hist_needExtendedHoursData
                                                )
+def _SMA_():
+    Date = time.strftime('%Y-%m-%d', time.localtime()) 
+    os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+    dfSMA = {}
+    for Ticker in symbol:
+        dfSMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
+    print(dfSMA)
+_SMA_()
 #Start Straming Session
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True

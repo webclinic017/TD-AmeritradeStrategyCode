@@ -118,7 +118,9 @@ class TDClient():
                 'code':url_code,
                 'redirect_uri':'http://localhost/'
                }
+        print(url_code)
         token_response = requests.post(url = self.config['token_endpoint'], data=data, verify=True)
+        print(token_response)
         self.token_save(token_response)
         if token_response and token_response.ok:
             self.state_manager('save')
@@ -321,7 +323,10 @@ class TDClient():
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')            
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+
+
+        
             
       
 
