@@ -2,18 +2,27 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 from matplotlib.animation import FuncAnimation
+import matplotlib
 import os
 from config import client_id, password, accntNmber, userName
 import requests
 import time
+from Client_ import TDClient
+import mpl_finance
 
 
-def daily_stream():
-    Watchlist = pd.read_csv('WatchList.csv')
-    data = {}
-    for Ticker in Watchlist:
-        data[Ticker] = pd.read_csv(Ticker + '_' + 'Stream' + '_' + Date + '.csv')
-    print(data)
-
+TDPlot = TDClient(account_number = accntNmber,
+                  account_password = password,
+                  redirect_uri = 'http://localhost/',
+                  consumer_id = client_id,
+                  )
+symbol = TDPlot.multiple_symbol_watchlist()
 Date = time.strftime('%Y-%m-%d', time.localtime()) 
-daily_stream()
+
+
+
+
+
+
+
+

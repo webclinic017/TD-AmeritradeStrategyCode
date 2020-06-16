@@ -54,7 +54,7 @@ class TDClient():
             logged_in_state = 'False'
         str_representation = '<TDAmeritrade Client (logged_in = {}, authorized = {})>'.format(logged_in_state, self.authstate)
         return str_representation
-    def headers(self, mode=None) -> dict:
+    def headers(self, mode=None, token=None) -> dict:
         token = self.state['access_token']
         headers = {'Authorization':f'Bearer {token}'}
         if mode == 'application/json':
@@ -168,7 +168,6 @@ class TDClient():
         self.state['loggedin'] = True
         self.state['access_token_expires_at'] = time.time() + int(json_data['expires_in'])
         self.state['refresh_token_expires_at'] = time.time() + int(json_data['refresh_token_expires_in'])
-        print(json_data)
         return True
     def token_seconds(self, token_type = 'access_token'):
         if token_type == 'access_token':
@@ -249,6 +248,7 @@ class TDClient():
                      }
         streaming_session = TDStreamerClient(websocket_url=socket_url, user_principal_data=userPrincipalsResponse,credentials=credentials)
         return streaming_session
+#WATCHLIST
 #Reads the tickers you have added to the watchlist.csv togather OHLC and streaming price data
     def multiple_symbol_watchlist(self, symbols=None):
         with open('WatchList.csv', newline='') as watchlist:
@@ -263,6 +263,7 @@ class TDClient():
         #for days in range(1,20,1):
         #    epoch = ((datetime.now() - timedelta(days)).timestamp()) * 1000
         return TimeDay
+#INDICATORS
 #Interfaces with TD Historical Endpoint to gather OHLC Data called from TDAmaeritrade startegy
     #Have OHLC file to plot Candlestick plots for each symbol as well as daily price changes
     def Historical_Endpoint(self, 
@@ -314,6 +315,8 @@ class TDClient():
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
+                if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
+                    OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
                 os.chdir('C:\SourceCode\TD-AmeritradeAPI')
         else:
@@ -323,8 +326,62 @@ class TDClient():
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
+                if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
+                    OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
                 os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+    def _SMA_(self, symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime()) 
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        SMA = {}
+        for Ticker in symbol:
+            SMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
+            SMA[Ticker] = SMA[Ticker].iloc[:,5].rolling(window=1).mean()
+            SMA[Ticker + ' ' + 'SMA'] = SMA.pop(Ticker) 
+            dfSMA_data = pd.DataFrame(SMA)
+        return dfSMA_data
+    def _SMA_toCSV(self, symbol=None, SimpleMovingAverage=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        for Ticker in symbol:
+            df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
+            df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
+#ORDERS
+    def accounts(self, accntNmber=None):
+        AccntPayload = {'fields':'positions',
+                        'apikey':client_id
+                       }
+        merged_headers = self.headers()
+        getAccntsEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}'.format(accntNmber)
+        AccntContent = requests.get(url=getAccntsEndpoint, headers=merged_headers, params=AccntPayload)
+        AccntPositions = AccntContent.json()
+        return AccntPositions
+    def MarketOrder(self):
+        Order = {'orderType':'MARKET',
+                 'session':'NORMAL',
+                 'duration':'DAY',
+                 'orderStrategyType':'SINGLE',
+                 'orderLegCollection':[{'instruction':'Buy',
+                                        'quantity':1,
+                                        'instrument':{'symbol':'AVEO',
+                                                      'assetType':'EQUITY'
+                                                     }
+                                      }]
+                }
+        placeOrder = json.dumps(Order)
+        return placeOrder
+    def place_order(self, accntNmber=None):
+        merged_headers = self.headers()
+        orderData = self.MarketOrder()
+        orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
+        PlaceOrder = requests.post(url=orderEndpoint, headers=merged_headers, json=orderData)
+        print(PlaceOrder)
+        Order = PlaceOrder.json()
+        return PlaceOrder
+
+            
+
 
 
         

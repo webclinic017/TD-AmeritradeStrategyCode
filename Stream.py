@@ -30,7 +30,7 @@ class TDStreamerClient(object):
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
     def symbol_numbers(self):
-        with open('WatchList.csv', newline='') as watchlist:
+        with open('WatchList.csv', mode='r', newline='') as watchlist:
             WatchList = csv.reader(watchlist, delimiter=',')
             for Symbol in WatchList:
                 SymNum = len(Symbol)
@@ -39,28 +39,41 @@ class TDStreamerClient(object):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
         return TimeDay    
-    async def _write_stream_to_csv(self, data=None):
+    async def _write_stream_to_csv(self, data=None):      
         Date = self.epoch_datetime()
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        SymNum = self.symbol_numbers()
-        for i in range(SymNum):
-            Symbol = data[0]['content'][i]['key']
-            AskPrice = data[0]['content'][i]['3']
-            if self.CSV_APPEND_MODE == True:
-                csv_write_mode = 'a+'
-            else:
-                csv_write_mode = 'w'   
-            if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
-            else:
-                os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')            
-            with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
-                stream_writer = csv.writer(stream_file)
-                print('writing')
-                data = [Symbol, AskPrice, TimeSec]
-                stream_writer.writerow(data)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+        SymNum = 4#self.symbol_numbers() 
+        import os
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
+           os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+           if self.CSV_APPEND_MODE == True:
+               csv_write_mode = 'a+'
+           else:
+               csv_write_mode = 'w'             
+           for i in range(SymNum):
+               Symbol = data[0]['content'][i]['key']
+               AskPrice = data[0]['content'][i]['3']          
+               with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
+                   stream_writer = csv.writer(stream_file)
+                   print('writing')
+                   data = [Symbol, AskPrice, TimeSec]
+                   stream_writer.writerow(data)
+        else:
+           os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+           os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+           if self.CSV_APPEND_MODE == True:
+               csv_write_mode = 'a+'
+           else:
+               csv_write_mode = 'w'             
+           for i in range(SymNum):
+               Symbol = data[0]['content'][i]['key']
+               AskPrice = data[0]['content'][i]['3']          
+               with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
+                   stream_writer = csv.writer(stream_file)
+                   print('writing')
+                   data = [Symbol, AskPrice, TimeSec]
+                   stream_writer.writerow(data)
+            #os.chdir('C:\SourceCode\TD-AmeritradeAPI')
     async def epoch_to_datetime(self, data=None, TimeSec=None):
         timestamp = data[0]['timestamp']
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
