@@ -371,14 +371,16 @@ class TDClient():
                 }
         placeOrder = json.dumps(Order)
         return placeOrder
-    def place_order(self, accntNmber=None):
-        merged_headers = self.headers()
+    def place_order(self, accntNmber=None, mode=None):
+        headers = {'Authorization': 'Bearer {token}'.format(token = self.state['access_token'])}
+        if mode == 'json':
+            headers['Content-Type'] = 'application/json'
+        return headers
         orderData = self.MarketOrder()
         orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
-        PlaceOrder = requests.post(url=orderEndpoint, headers=merged_headers, json=orderData)
-        print(PlaceOrder)
+        PlaceOrder = requests.post(url=orderEndpoint, headers=headers, json=orderData)
         Order = PlaceOrder.json()
-        return PlaceOrder
+        return Order
 
             
 

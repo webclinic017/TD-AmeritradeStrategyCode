@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import numpy as np
 import time
+import pprint
 #initialize new session with accnt info and caching false
 TDSession = TDClient(account_number = accntNmber,
                      account_password = password,
@@ -27,7 +28,7 @@ symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data  
-
+'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -57,6 +58,7 @@ for Symbol in symbol:
 #Call Simple moving average valuse for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
+'''
 positions = TDSession.accounts(accntNmber=accntNmber)
 print(positions)
 PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber)
