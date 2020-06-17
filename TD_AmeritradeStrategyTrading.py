@@ -28,7 +28,6 @@ symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data  
-'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -58,17 +57,16 @@ for Symbol in symbol:
 #Call Simple moving average valuse for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
-'''
 positions = TDSession.accounts(accntNmber=accntNmber)
 print(positions)
+#PLACING ORDERS WORKS MAKE SURE TURNED OFF! 
 PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber)
-print(PlaceMarketOrder)
 #Start Straming Session
-'''
 TDStreamer = TDSession.create_streaming_session()
 TDStreamer.CSV_APPEND_MODE = True
 TDStreamer.level_one_quote(symbols=symbol, fields=['0','1','2','3'])
 TDStreamer.stream()
+'''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy

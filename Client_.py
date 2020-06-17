@@ -56,9 +56,11 @@ class TDClient():
         return str_representation
     def headers(self, mode=None, token=None) -> dict:
         token = self.state['access_token']
-        headers = {'Authorization':f'Bearer {token}'}
+        headers = {'Authorization': 'Bearer {token}'.format(token = self.state['access_token'])}
         if mode == 'application/json':
-            headers['Content-type'] = 'application/json'
+            headers['Content-Type'] = 'application/json'
+        if mode == 'json':
+            headers['Content-Type'] = 'application/json'
         return headers
     def api_endpoint(self, endpoint: str, resource: str = None) -> str:
         if resource:
@@ -347,7 +349,7 @@ class TDClient():
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
-#ORDERS
+#TEST ORDERS
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
                         'apikey':client_id
@@ -358,29 +360,27 @@ class TDClient():
         AccntPositions = AccntContent.json()
         return AccntPositions
     def MarketOrder(self):
-        Order = {'orderType':'MARKET',
-                 'session':'NORMAL',
-                 'duration':'DAY',
-                 'orderStrategyType':'SINGLE',
-                 'orderLegCollection':[{'instruction':'Buy',
-                                        'quantity':1,
-                                        'instrument':{'symbol':'AVEO',
-                                                      'assetType':'EQUITY'
-                                                     }
-                                      }]
+        Order = {"orderType": "MARKET",
+                 "session": "NORMAL",
+                 "duration": "DAY",
+                 "orderStrategyType": "SINGLE",
+                 "orderLegCollection": [{"instruction": "Buy",
+                                                        "quantity": 1,
+                                                        "instrument": {"symbol": "AVEO",
+                                                                       "assetType": "EQUITY"
+                                                                      }
+                                        }
+                                       ]
                 }
         placeOrder = json.dumps(Order)
         return placeOrder
     def place_order(self, accntNmber=None, mode=None):
-        headers = {'Authorization': 'Bearer {token}'.format(token = self.state['access_token'])}
-        if mode == 'json':
-            headers['Content-Type'] = 'application/json'
-        return headers
+        headers = self.headers(mode='json')
         orderData = self.MarketOrder()
+        print(orderData)
         orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
-        PlaceOrder = requests.post(url=orderEndpoint, headers=headers, json=orderData)
-        Order = PlaceOrder.json()
-        return Order
+        PlaceOrder = requests.post(url=orderEndpoint, headers=headers, data=orderData)
+        return PlaceOrder
 
             
 
