@@ -349,6 +349,17 @@ class TDClient():
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
+    def fiftyDaySMA(self,symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        fiftyDaySMA = []
+        for ticker in symbol:
+            fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            fiftyDaySMA[ticker] = fiftyDaySMA.head(50)
+            fiftyDaySMA[ticker] = pd.DataFrame(fiftyDaySMA)
+            fiftyDayMean[ticker] = fiftyDaySMA.mean()
+            fiftyDayMean[ticker] = fiftyDayMean[ticker + ' ' + 'SMA']
+        return fiftyDayMean
 #TEST ORDERS
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',

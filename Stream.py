@@ -32,9 +32,9 @@ class TDStreamerClient(object):
     def symbol_numbers(self):
         with open('WatchList.csv', mode='r', newline='') as watchlist:
             WatchList = csv.reader(watchlist, delimiter=',')
-            for Symbol in WatchList:
-                SymNum = len(Symbol)
-                return SymNum
+            #for Symbol in WatchList:
+            #    SymNum = len(WatchList)
+            #return SymNum
     def epoch_datetime(self):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
@@ -42,7 +42,7 @@ class TDStreamerClient(object):
     async def _write_stream_to_csv(self, data=None):      
         Date = self.epoch_datetime()
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        SymNum = 4#self.symbol_numbers() 
+        SymNum = 10#self.symbol_numbers() 
         import os
         if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
@@ -137,6 +137,7 @@ class TDStreamerClient(object):
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
                             await self._write_stream_to_csv(data = message_decoded['data'])
+                            await self.stream_Trader(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
@@ -200,4 +201,7 @@ class TDStreamerClient(object):
         request['parameters']['keys'] = ','.join(str(v) for v in symbols)
         quoteData = request['parameters']['fields'] = ','.join(fields)
         self.data_requests['requests'].append(request)
+    async def stream_Trader(self, data=None):
+        TimeSec = time.strftime('%I:%M:%S', time.localtime())
+        print(data)
 

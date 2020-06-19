@@ -1,4 +1,5 @@
 from Client_ import TDClient
+from TradeOrders import TDOrders
 from config import client_id, password, accntNmber, userName
 from datetime import datetime
 from datetime import timedelta
@@ -23,11 +24,11 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 50
+Num_DayMAInputs = 70
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
-    #Accounts for weekend repetative data  
+    #Accounts for weekend repetative data 
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -58,14 +59,10 @@ for Symbol in symbol:
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
 positions = TDSession.accounts(accntNmber=accntNmber)
-print(positions)
-#PLACING ORDERS WORKS MAKE SURE TURNED OFF! 
-PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber)
-#Start Straming Session
-TDStreamer = TDSession.create_streaming_session()
-TDStreamer.CSV_APPEND_MODE = True
-TDStreamer.level_one_quote(symbols=symbol, fields=['0','1','2','3'])
-TDStreamer.stream()
+fiftyDaySMA = TDSession.fiftyDaySMA(symbol=symbol)
+print(fiftyDaySMA)
+#PLACING ORDERS WORKS MAKE SURE TURNED OFF!
+#PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber)
 '''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
