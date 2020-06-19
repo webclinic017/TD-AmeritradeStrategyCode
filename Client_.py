@@ -312,29 +312,29 @@ class TDClient():
     #CSV Dates are incorrect (Accounts for Weekends)
     def _write_OHLC_to_csv(self, OHLC, Symbol):
         Date = self.epoch_datetime()
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC'):
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC'):
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
         else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date)
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
     def _SMA_(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime()) 
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         SMA = {}
         for Ticker in symbol:
             SMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
@@ -344,22 +344,29 @@ class TDClient():
         return dfSMA_data
     def _SMA_toCSV(self, symbol=None, SimpleMovingAverage=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
     def fiftyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
-        fiftyDaySMA = []
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        fiftyDaySMA = {}
         for ticker in symbol:
             fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            fiftyDaySMA[ticker] = fiftyDaySMA.head(50)
-            fiftyDaySMA[ticker] = pd.DataFrame(fiftyDaySMA)
-            fiftyDayMean[ticker] = fiftyDaySMA.mean()
-            fiftyDayMean[ticker] = fiftyDayMean[ticker + ' ' + 'SMA']
-        return fiftyDayMean
+            fiftyDaySMA[ticker] = fiftyDaySMA[ticker].iloc[:45,8].mean()
+            fiftyDaySMA[ticker + ' ' + '50DaySMA'] = fiftyDaySMA.pop(ticker)
+        return fiftyDaySMA
+    def twentyDaySMA(self,symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        twentyDaySMA = {}
+        for ticker in symbol:
+            twentyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:20,8].mean()
+            twentyDaySMA[ticker + ' ' + '20DaySMA'] = twentyDaySMA.pop(ticker)
+        return twentyDaySMA
 #TEST ORDERS
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
