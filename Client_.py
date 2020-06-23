@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as np
 import os
 from os import path
+import tailer as tl
 
 class TDClient():
 
@@ -312,29 +313,29 @@ class TDClient():
     #CSV Dates are incorrect (Accounts for Weekends)
     def _write_OHLC_to_csv(self, OHLC, Symbol):
         Date = self.epoch_datetime()
-        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC'):
-            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC'):
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
         else:
-            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date)
-            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
-            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
+                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
     def _SMA_(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime()) 
-        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
         SMA = {}
         for Ticker in symbol:
             SMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
@@ -344,29 +345,57 @@ class TDClient():
         return dfSMA_data
     def _SMA_toCSV(self, symbol=None, SimpleMovingAverage=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
     def fiftyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
         fiftyDaySMA = {}
         for ticker in symbol:
             fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            fiftyDaySMA[ticker] = fiftyDaySMA[ticker].iloc[:45,8].mean()
-            fiftyDaySMA[ticker + ' ' + '50DaySMA'] = fiftyDaySMA.pop(ticker)
+            fiftyDaySMA[ticker] = fiftyDaySMA[ticker].iloc[:31,7].mean()
+            #fiftyDaySMA[ticker + ' ' + '50DaySMA'] = fiftyDaySMA.pop(ticker)
         return fiftyDaySMA
     def twentyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
         twentyDaySMA = {}
         for ticker in symbol:
             twentyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:20,8].mean()
-            twentyDaySMA[ticker + ' ' + '20DaySMA'] = twentyDaySMA.pop(ticker)
+            twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:11,7].mean()
+            #twentyDaySMA[ticker + ' ' + '20DaySMA'] = twentyDaySMA.pop(ticker)
         return twentyDaySMA
+    def BuyTickers(self,symbol=None):
+        fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
+        fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
+        twentyDaySMA = self.twentyDaySMA(symbol=symbol)
+        twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
+        df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
+        df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
+        BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
+        BuyTickers = BuyTickers.tolist()
+        return BuyTickers
+    def SellTickers(self,symbol=None):
+        fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
+        fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
+        twentyDaySMA = self.twentyDaySMA(symbol=symbol)
+        twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
+        df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
+        df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
+        SellTickers = df_SMA[df_SMA['twentyDaySMA'] < df_SMA['fiftyDaySMA']].index
+        SellTickers = BuyTickers.tolist()
+        return SellTickers
+    def readStream(self, symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+        streamData = {}
+        for Ticker in symbol:
+            streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])   
+            stream = pd.DataFrame([streamData])
+        return stream
 #TEST ORDERS
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
@@ -377,28 +406,60 @@ class TDClient():
         AccntContent = requests.get(url=getAccntsEndpoint, headers=merged_headers, params=AccntPayload)
         AccntPositions = AccntContent.json()
         return AccntPositions
-    def MarketOrder(self):
-        Order = {"orderType": "MARKET",
-                 "session": "NORMAL",
-                 "duration": "DAY",
-                 "orderStrategyType": "SINGLE",
-                 "orderLegCollection": [{"instruction": "Buy",
-                                                        "quantity": 1,
-                                                        "instrument": {"symbol": "AVEO",
-                                                                       "assetType": "EQUITY"
+    def BuyingPower(self,accntNmber=None):
+        accntInfo = self.accounts(accntNmber)
+        buyingPower = accntInfo['securitiesAccount']['projectedBalances']['availableFunds']
+        buyingPower = float(buyingPower)
+        return buyingPower
+    def accntAssets(self, accntNmber=None):
+        accntInfo = self.accounts(accntNmber)
+        asstets = accntInfo['securitiesAccount']['positions'][0]['instrument']['symbol']
+        return asstets
+    def BuyMarketOrder(self, shares:str, ticker:str):
+        Order = {'orderType': 'MARKET',
+                 'session': 'NORMAL',
+                 'duration': 'DAY',
+                 'orderStrategyType': 'SINGLE',
+                 'orderLegCollection': [{'instruction': 'Buy',
+                                                        'quantity': shares,
+                                                        'instrument': {'symbol': ticker,
+                                                                       'assetType': 'EQUITY'
                                                                       }
                                         }
                                        ]
                 }
         placeOrder = json.dumps(Order)
         return placeOrder
-    def place_order(self, accntNmber=None, mode=None):
+    def SellMarketOrder(self, shares:str, ticker:str):
+        Order = {'orderType': 'MARKET',
+                 'session': 'NORMAL',
+                 'duration': 'DAY',
+                 'orderStrategyType': 'SINGLE',
+                 'orderLegCollection': [{'instruction': 'Sell',
+                                                        'quantity': shares,
+                                                        'instrument': {'symbol': ticker,
+                                                                       'assetType': 'EQUITY'
+                                                                      }
+                                        }
+                                       ]
+                }
+        placeOrder = json.dumps(Order)
+        return sellPositions
+    def place_order(self, accntNmber=None, mode=None, shares=None, ticker=None):
         headers = self.headers(mode='json')
-        orderData = self.MarketOrder()
+        orderData = self.BuyMarketOrder(shares=shares, ticker=ticker)
         print(orderData)
         orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
         PlaceOrder = requests.post(url=orderEndpoint, headers=headers, data=orderData)
         return PlaceOrder
+    def sellPositions(self, accntNmber=None, mode=None, shares=None, ticker=None):
+        headers = self.headers(mode='json')
+        orderData = self.SellMarketOrder(shares=shares, ticker=ticker)
+        print(orderData)
+        orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
+        SellOrder = requests.post(url=orderEndpoint, headers=headers, data=orderData)
+        return SellOrder
+
 
             
 

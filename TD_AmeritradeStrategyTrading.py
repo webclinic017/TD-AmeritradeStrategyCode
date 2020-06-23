@@ -24,12 +24,11 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 60
+Num_DayMAInputs = 45
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data 
-'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -56,15 +55,31 @@ for Symbol in symbol:
                                                    )
         else:
             False
-'''
-#Call Simple moving average valuse for each symbol in watchlist
+#Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
+BuyTickers = TDSession.BuyTickers(symbol=symbol)
+SellTickers = TDSession.SellTickers(symbol=symbol)
+#Account information to place orders
 positions = TDSession.accounts(accntNmber=accntNmber)
-fiftyDaySMA = TDSession.fiftyDaySMA(symbol=symbol)
-twentyDaySMA = TDSession.twentyDaySMA(symbol=symbol)
-#PLACING ORDERS WORKS MAKE SURE TURNED OFF!
-#PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber)
+BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
+Assets = TDSession.accntAssets(accntNmber=accntNmber)
+Assets = list(Assets)
+#streamPrice = TDSession.readStream(symbol=symbol)
+#print(streamPrice)
+#Simple Moving Average Logic
+if BuyTickers in Assets:
+    print('You already own this position.')
+else:
+    for ticker in BuyTickers:
+        shares = 3
+        PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
+if SellTickers in Assets:
+    for ticker in SellTickers:
+        shares = 3
+        SellMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
+else:
+    pass
 '''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f

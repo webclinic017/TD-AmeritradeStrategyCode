@@ -1,0 +1,3 @@
+{"orderType": "MARKET", "session": "NORMAL", "duration": "DAY", "orderStrategyType": "SINGLE", "orderLegCollection": [{"instruction": "Buy", "quantity": 3, "instrument": {"symbol": "AFMD", "assetType": "EQUITY"}}]}
+{"orderType": "MARKET", "session": "NORMAL", "duration": "DAY", "orderStrategyType": "SINGLE", "orderLegCollection": [{"instruction": "Buy", "quantity": 3, "instrument": {"symbol": "EVOK", "assetType": "EQUITY"}}]}
+{"orderType": "MARKET", "session": "NORMAL", "duration": "DAY", "orderStrategyType": "SINGLE", "orderLegCollection": [{"instruction": "Buy", "quantity": 3, "instrument": {"symbol": "IDEX", "assetType": "EQUITY"}}]}

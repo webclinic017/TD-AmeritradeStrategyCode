@@ -1,5 +1,6 @@
 from Client_ import TDClient
 from config import client_id, password, accntNmber, userName
+import os
 
 #initialize new session with accnt info and caching false
 TDSession = TDClient(account_number = accntNmber,

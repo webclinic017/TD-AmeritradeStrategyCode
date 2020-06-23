@@ -59,20 +59,20 @@ class TDStreamerClient(object):
                    data = [Symbol, AskPrice, TimeSec]
                    stream_writer.writerow(data)
         else:
-           os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
-           os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
-           if self.CSV_APPEND_MODE == True:
-               csv_write_mode = 'a+'
-           else:
-               csv_write_mode = 'w'             
-           for i in range(SymNum):
-               Symbol = data[0]['content'][i]['key']
-               AskPrice = data[0]['content'][i]['3']          
-               with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
-                   stream_writer = csv.writer(stream_file)
-                   print('writing')
-                   data = [Symbol, AskPrice, TimeSec]
-                   stream_writer.writerow(data)
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\\Data' + '\\' + Date + '\\' + 'StreamData')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+            if self.CSV_APPEND_MODE == True:
+                csv_write_mode = 'a+'
+            else:
+                csv_write_mode = 'w'             
+            for i in range(SymNum):
+                Symbol = data[0]['content'][i]['key']
+                AskPrice = data[0]['content'][i]['3']          
+                with open((Symbol + '_' + 'Stream' + '_' + Date + '.csv'), mode=csv_write_mode, newline='') as stream_file:           
+                    stream_writer = csv.writer(stream_file)
+                    print('writing')
+                    data = [Symbol, AskPrice, TimeSec]
+                    stream_writer.writerow(data)
             #os.chdir('C:\SourceCode\TD-AmeritradeAPI')
     async def epoch_to_datetime(self, data=None, TimeSec=None):
         timestamp = data[0]['timestamp']
@@ -137,7 +137,6 @@ class TDStreamerClient(object):
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
                             await self._write_stream_to_csv(data = message_decoded['data'])
-                            await self.stream_Trader(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
