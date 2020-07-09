@@ -375,6 +375,7 @@ class TDClient():
         twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
         df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
         df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
+        print(df_SMA)
         BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
         BuyTickers = BuyTickers.tolist()
         return BuyTickers
@@ -386,7 +387,7 @@ class TDClient():
         df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
         df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
         SellTickers = df_SMA[df_SMA['twentyDaySMA'] < df_SMA['fiftyDaySMA']].index
-        SellTickers = BuyTickers.tolist()
+        SellTickers = SellTickers.tolist()
         return SellTickers
     def readStream(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
@@ -394,9 +395,9 @@ class TDClient():
         streamData = {}
         for Ticker in symbol:
             streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])   
-            stream = pd.DataFrame([streamData])
-        return stream
-#TEST ORDERS
+            streamData[Ticker] = streamDate[Ticker].iloc[:,2].mean()
+        return streamData
+#ORDERS
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
                         'apikey':client_id
@@ -411,10 +412,16 @@ class TDClient():
         buyingPower = accntInfo['securitiesAccount']['projectedBalances']['availableFunds']
         buyingPower = float(buyingPower)
         return buyingPower
-    def accntAssets(self, accntNmber=None):
+    def accntAssets(self, accntNmber=None, symbol=None):
         accntInfo = self.accounts(accntNmber)
-        asstets = accntInfo['securitiesAccount']['positions'][0]['instrument']['symbol']
-        return asstets
+        assets = {}
+        for ticker in range(len(symbol)): 
+            assets[ticker] = accntInfo['securitiesAccount']['positions'][ticker]['instrument']['symbol']
+            tickerDict = {key:val for key, val in assets.items() if val == 'MMDA1'}
+            print(tickerDict)
+            data = assets.values()
+            Positions = list(data)      
+        return Positions
     def BuyMarketOrder(self, shares:str, ticker:str):
         Order = {'orderType': 'MARKET',
                  'session': 'NORMAL',
@@ -443,7 +450,7 @@ class TDClient():
                                         }
                                        ]
                 }
-        placeOrder = json.dumps(Order)
+        sellPositions = json.dumps(Order, indent=4)
         return sellPositions
     def place_order(self, accntNmber=None, mode=None, shares=None, ticker=None):
         headers = self.headers(mode='json')
@@ -459,6 +466,57 @@ class TDClient():
         orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
         SellOrder = requests.post(url=orderEndpoint, headers=headers, data=orderData)
         return SellOrder
+    def sellorderSummary(self, shares=None, ticker=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        TimeSec = time.strftime('%I:%M:%S', time.localtime())
+        orderData = self.SellMarketOrder(shares=shares, ticker=ticker)
+        Summary = {'orderType': orderData['orderType'][0],
+                      'Date': Date,
+                      'Time': TimeSec,
+                      'orderLegCollection':[{'instruction':orderData['orderLegConstuction']['instruction'],
+                                             'quantity':orderData['orderLegConstuction']['quantity'],
+                                             'symbol':orderData['orderLegConstuction']['instrument']['symbol'],
+                                             'price':'pull form streamer'
+                                           }]
+                     }
+        sellSummary = json.dumps(Summary)
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders'):
+            with open (ticker + ' ' + 'sell.json','w') as SellOrder:
+                SellOrder.write(sellSummary)
+        else:
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
+            with open (ticker + ' ' + 'sell.json', 'w') as SellOrder:
+                SellOrder.write(sellSummary)
+    def buyorderSummary(self, shares=None, ticker=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        TimeSec = time.strftime('%I:%M:%S', time.localtime())
+        orderData = self.BuyMarketOrder(shares=shares, ticker=ticker)
+        Summary = {'orderType': orderData['orderType'][0],
+                      'Date': Date,
+                      'Time': TimeSec,
+                      'orderLegCollection':[{'instruction':orderData['orderLegConstuction']['instruction'],
+                                             'quantity':orderData['orderLegConstuction']['quantity'],
+                                             'symbol':orderData['orderLegConstuction']['instrument']['symbol'],
+                                             'price':'pull from streamer'
+                                           }]
+                     }
+        buySummary = json.dumps(Summary,indent=4)
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders'):
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
+            with open (ticker + ' ' + 'buy.json','w') as BuyOrder:
+                BuyOrder.write(buySummary)
+        else:
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
+            with open (ticker + ' ' + 'buy.json', 'w') as BuyOrder:
+                BuyOrder.write(buySummary)
+
+
+
+        
 
 
             

@@ -57,29 +57,38 @@ for Symbol in symbol:
             False
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
-TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
+SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
 BuyTickers = TDSession.BuyTickers(symbol=symbol)
 SellTickers = TDSession.SellTickers(symbol=symbol)
 #Account information to place orders
 positions = TDSession.accounts(accntNmber=accntNmber)
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
-Assets = TDSession.accntAssets(accntNmber=accntNmber)
-Assets = list(Assets)
+Assets = TDSession.accntAssets(accntNmber=accntNmber, symbol=symbol)
+print(SellTickers)
+print(Assets)
 #streamPrice = TDSession.readStream(symbol=symbol)
 #print(streamPrice)
 #Simple Moving Average Logic
-if BuyTickers in Assets:
-    print('You already own this position.')
-else:
-    for ticker in BuyTickers:
-        shares = 3
-        PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
-if SellTickers in Assets:
-    for ticker in SellTickers:
-        shares = 3
-        SellMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
-else:
-    pass
+'''
+Buy = []
+for position in BuyTickers:
+    if not position in Assets:
+        shares = 5
+        print('Buy' + ' ' + position)
+        PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
+        SellOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
+    else:
+        print('You already own' + ' ' + position)
+Sell = []
+for position in Assets:
+    if position in SellTickers:
+        shares = 5
+        print('Sell' + ' ' + position)
+        SellMarketOrder = TDSession.sellPositions(accntNmber=accntNmber, shares=shares, ticker=position)
+        SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
+    else:
+        pass
+'''
 '''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f

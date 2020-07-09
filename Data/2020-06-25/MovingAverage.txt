@@ -1,0 +1,5 @@
+      twentyDaySMA  fiftyDaySMA
+AFMD      3.589418     3.191494
+EVOK      2.818091     2.386658
+IDEX      1.827409     0.940108
+OCX       2.714855     2.715594
