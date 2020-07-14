@@ -16,7 +16,6 @@ import pandas as pd
 import numpy as np
 import os
 from os import path
-import tailer as tl
 
 class TDClient():
 
@@ -313,29 +312,29 @@ class TDClient():
     #CSV Dates are incorrect (Accounts for Weekends)
     def _write_OHLC_to_csv(self, OHLC, Symbol):
         Date = self.epoch_datetime()
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC'):
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC'):
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
         else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date)
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
     def _SMA_(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime()) 
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         SMA = {}
         for Ticker in symbol:
             SMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
@@ -345,14 +344,14 @@ class TDClient():
         return dfSMA_data
     def _SMA_toCSV(self, symbol=None, SimpleMovingAverage=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
     def fiftyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         fiftyDaySMA = {}
         for ticker in symbol:
             fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
@@ -361,13 +360,29 @@ class TDClient():
         return fiftyDaySMA
     def twentyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         twentyDaySMA = {}
         for ticker in symbol:
             twentyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:11,7].mean()
             #twentyDaySMA[ticker + ' ' + '20DaySMA'] = twentyDaySMA.pop(ticker)
         return twentyDaySMA
+    def tenDayEMA(self,symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        tenDayEMA = {}
+        for ticker in symbol:
+            tenDayEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            tenDayEMA[ticker] = tenDayEMA[ticker].iloc[:11,7].ewm(span=10).mean()
+        return tenDayEMA
+    def thirtyDayEMA(self,symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+        thirtyDayEMA = {}
+        for ticker in symbol:
+            thirtyDayEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            thirtyDayEMA[ticker] = thirtyDayEMA[ticker].iloc[:,7].ewm(span=1).mean()
+        return thirtyDayEMA
     def BuyTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
@@ -379,7 +394,7 @@ class TDClient():
         BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
         BuyTickers = BuyTickers.tolist()
         return BuyTickers
-    def SellTickers(self,symbol=None):
+    def SMA_SellTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
         twentyDaySMA = self.twentyDaySMA(symbol=symbol)
@@ -389,9 +404,20 @@ class TDClient():
         SellTickers = df_SMA[df_SMA['twentyDaySMA'] < df_SMA['fiftyDaySMA']].index
         SellTickers = SellTickers.tolist()
         return SellTickers
+    def EMA_SellTickers(self,symbol=None):
+        thirtyDayEMA = self.thirtyDayEMA(symbol=symbol)
+        thirtyDayEMA_Values = pd.DataFrame.from_dict(thirtyDayEMA, orient='index')
+        print(thirtyDayEMA_Values)
+        tenDayEMA = self.tenDayEMA(symbol=symbol)
+        tenDayEMA_Values = pd.DataFrame.from_dict(tenDayEMA, orient='index')
+        df_EMA = tenDayEMA_Values.merge(thirtyDayEMA_Values, left_index=True, right_index=True)
+        df_EMA.rename(columns={'0_x':'tenDayEMA','0_y':'thirtyDayEMA'}, inplace=True)
+        SellTickers = df_EMA[df_EMA['tenDayEMA'] < df_EMA['thirtyDayEMA']].index
+        SellTickers = SellTickers.tolist()
+        return SellTickers
     def readStream(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
         streamData = {}
         for Ticker in symbol:
             streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])   
@@ -415,12 +441,13 @@ class TDClient():
     def accntAssets(self, accntNmber=None, symbol=None):
         accntInfo = self.accounts(accntNmber)
         assets = {}
-        for ticker in range(len(symbol)): 
-            assets[ticker] = accntInfo['securitiesAccount']['positions'][ticker]['instrument']['symbol']
-            tickerDict = {key:val for key, val in assets.items() if val == 'MMDA1'}
-            print(tickerDict)
+        i=0
+        #This Hard code number needs to be resolved
+        while i <= 2:
+            assets[i] = accntInfo['securitiesAccount']['positions'][i]['instrument']['symbol']
             data = assets.values()
-            Positions = list(data)      
+            Positions = list(data)     
+            i=i+1
         return Positions
     def BuyMarketOrder(self, shares:str, ticker:str):
         Order = {'orderType': 'MARKET',

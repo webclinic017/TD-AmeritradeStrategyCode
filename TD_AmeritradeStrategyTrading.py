@@ -59,13 +59,14 @@ for Symbol in symbol:
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
 BuyTickers = TDSession.BuyTickers(symbol=symbol)
-SellTickers = TDSession.SellTickers(symbol=symbol)
+SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
+print(SMA_SellTickers)
+EMA_SellTickers = TDSession.EMA_SellTickers(symbol=symbol)
+print(EMA_SellTickers)
 #Account information to place orders
 positions = TDSession.accounts(accntNmber=accntNmber)
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 Assets = TDSession.accntAssets(accntNmber=accntNmber, symbol=symbol)
-print(SellTickers)
-print(Assets)
 #streamPrice = TDSession.readStream(symbol=symbol)
 #print(streamPrice)
 #Simple Moving Average Logic
