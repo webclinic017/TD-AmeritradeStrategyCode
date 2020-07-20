@@ -57,16 +57,24 @@ for Symbol in symbol:
             False
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
-SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol,SimpleMovingAverage=SimpleMovingAverage)
+MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
+MACD_spanTwntySix = TDSession.spanTwntySixEMA(symbol=symbol)
+MACD = TDSession._MACD_(symbol=symbol)
+MACD_Tickers = TDSession._MACD_Tickers(symbol=symbol)
+SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol, SimpleMovingAverage=SimpleMovingAverage)
+EMA_toCSV = TDSession._EMA_toCSV(symbol=symbol,spantwelveEMA=MACD_spanTwelve, spanTwntySixEMA=MACD_spanTwntySix, _MACD_=MACD)
+MACD_Signal = TDSession.MACD_Signal(symbol=symbol)
+MACD_SignalToCSV = TDSession._MACD_SignaltoCSV(symbol=symbol,MACD_Signal=MACD_Signal)
 BuyTickers = TDSession.BuyTickers(symbol=symbol)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
-print(SMA_SellTickers)
-EMA_SellTickers = TDSession.EMA_SellTickers(symbol=symbol)
-print(EMA_SellTickers)
+MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
+print(MACD_SellTickers)
 #Account information to place orders
 positions = TDSession.accounts(accntNmber=accntNmber)
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 Assets = TDSession.accntAssets(accntNmber=accntNmber, symbol=symbol)
+Quantity = TDSession.assetQuantity(symbol=symbol)
+print(Quantity)
 #streamPrice = TDSession.readStream(symbol=symbol)
 #print(streamPrice)
 #Simple Moving Average Logic
