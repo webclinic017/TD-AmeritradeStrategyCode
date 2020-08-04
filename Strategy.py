@@ -5,8 +5,8 @@ class Test_Strategy(backtrader.Strategy):
     params = (('period_me1', 12),
               ('period_me2', 26),
               ('period_signal', 9),
-              ('pfast', 10),
-              ('pslow', 30),
+              ('pfast', 5),
+              ('pslow', 11),
               ('period',14),
               ('upperband',70),
               ('lowerband',30),
@@ -26,12 +26,13 @@ class Test_Strategy(backtrader.Strategy):
         self.l.signal = backtrader.indicators.EMA(self.l.macd, period=self.p.period_signal, plot=False)
         self.l.histo = self.l.macd - self.l.signal
         self.crossoverMACD = backtrader.indicators.CrossOver(self.l.macd, self.l.signal,plot=False)
-        slowSMA = backtrader.indicators.SMA(period=self.p.pslow, plot=False)
-        fastSMA = backtrader.indicators.SMA(period=self.p.pfast, plot=False)
+        slowSMA = backtrader.indicators.SMA(period=self.p.pslow)#, plot=False)
+        fastSMA = backtrader.indicators.SMA(period=self.p.pfast)#, plot=False)
         self.crossoverSMA = backtrader.indicators.CrossOver(slowSMA,fastSMA,plot=False)
         self.rsi = backtrader.indicators.RSI_SMA(self.data, period=self.p.period, upperband=self.p.upperband, lowerband=self.p.lowerband, subplot=True, plotname='RSI')
         self.bollingerBands = backtrader.indicators.BBands(self.data, period=self.p.period_me2, devfactor=self.p.devfactor)
         self.dataclose = self.datas[0].close
+        self.dataVolume = self.datas[0].volume
     def notify_order(self,order):
         if order.status in [order.Submitted, order.Accepted]:
             return
@@ -46,10 +47,10 @@ class Test_Strategy(backtrader.Strategy):
         if self.order:
             return
         if not self.position:
-            if self.dataclose[0] < self.dataclose[-1]:
-                if self.dataclose[-1] < self.dataclose[-2]:
-                    if self.rsi < 30:
-                        self.order = self.buy()
+            if self.crossoverSMA < 0:
+                if self.dataVolume[0] > self.dataVolume[-1]:
+                    if self.dataVolume[-1] > self.dataVolume[-2]:
+                        if self.rsi > 30:
+                            self.order = self.buy()
         elif self.rsi > 70:
-            if self.rsi[0] < self.rsi[-1]:
-                self.order = self.sell()
+            self.order = self.sell()
