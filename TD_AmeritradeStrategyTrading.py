@@ -29,6 +29,7 @@ symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data
+'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -77,7 +78,6 @@ BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 Assets = TDSession.accntAssets(accntNmber=accntNmber, symbol=symbol)
 Quantity = TDSession.assetQuantity(symbol=symbol)
 print(Quantity)
-'''
 #streamPrice = TDSession.readStream(symbol=symbol)
 #print(streamPrice)
 #Simple Moving Average Logic
@@ -99,10 +99,10 @@ for position in Assets:
         SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
-
+'''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy
 #Run Backtrader
 RunBacktrader = Backtrader_main_._Backtrader_()
-'''
+
