@@ -78,7 +78,6 @@ BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 Assets = TDSession.accntAssets(accntNmber=accntNmber, symbol=symbol)
 Quantity = TDSession.assetQuantity(symbol=symbol)
 print(Quantity)
-'''
 #streamPrice = TDSession.readStream(symbol=symbol)
 #print(streamPrice)
 #Simple Moving Average Logic

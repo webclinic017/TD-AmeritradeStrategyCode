@@ -47,10 +47,7 @@ class Test_Strategy(backtrader.Strategy):
         if self.order:
             return
         if not self.position:
-            if self.crossoverSMA < 0:
-                if self.dataVolume[0] > self.dataVolume[-1]:
-                    if self.dataVolume[-1] > self.dataVolume[-2]:
-                        if self.rsi > 30:
-                            self.order = self.buy()
+            if self.rsi < 30:
+                self.order = self.buy()
         elif self.rsi > 70:
             self.order = self.sell()
