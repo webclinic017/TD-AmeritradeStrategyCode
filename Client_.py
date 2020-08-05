@@ -295,6 +295,7 @@ class TDClient():
         historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
         # convert it to a dictionary
         historicalData = historicalContent.json()
+        print(historicalData)
         #Store each parameter as a variable and create an array
         Symbol = historicalData['symbol']
         Open = historicalData['candles'][0]['open']
