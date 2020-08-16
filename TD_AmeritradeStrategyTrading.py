@@ -19,7 +19,7 @@ TDSession = TDClient(account_number = accntNmber,
                      #cache_state = True
                      )
 TDSession.login()
-print(TDSession.state['loggedin'])
+print(TDSession.state['loggedin']) 
 print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
