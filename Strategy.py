@@ -5,8 +5,9 @@ class Test_Strategy(backtrader.Strategy):
     params = (('period_me1', 12),
               ('period_me2', 26),
               ('period_signal', 9),
-              ('pfast', 5),
-              ('pslow', 11),
+              ('period_dfast', 3),
+              ('pfast', 10),
+              ('pslow', 30),
               ('period',14),
               ('upperband',70),
               ('lowerband',30),
@@ -31,6 +32,7 @@ class Test_Strategy(backtrader.Strategy):
         self.crossoverSMA = backtrader.indicators.CrossOver(slowSMA,fastSMA,plot=False)
         self.rsi = backtrader.indicators.RSI_SMA(self.data, period=self.p.period, upperband=self.p.upperband, lowerband=self.p.lowerband, subplot=True, plotname='RSI')
         self.bollingerBands = backtrader.indicators.BBands(self.data, period=self.p.period_me2, devfactor=self.p.devfactor)
+        self.stochastic = backtrader.indicators.StochasticFull(self.data, period=self.p.period,upperband=self.p.upperband, lowerband=self.p.lowerband)
         self.dataclose = self.datas[0].close
         self.dataVolume = self.datas[0].volume
     def notify_order(self,order):
@@ -47,7 +49,9 @@ class Test_Strategy(backtrader.Strategy):
         if self.order:
             return
         if not self.position:
-            if self.rsi < 30:
-                self.order = self.buy()
-        elif self.rsi > 70:
-            self.order = self.sell()
+            if self.dataclose[0] < self.bollingerBands.lines.bot:
+                if self.rsi[0] > 30:
+                    self.order = self.buy()
+        elif self.dataclose[0] > self.bollingerBands.lines.top:
+                if self.rsi[0] > 70:
+                    self.order = self.sell()

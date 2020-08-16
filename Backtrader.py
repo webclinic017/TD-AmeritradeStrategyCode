@@ -12,7 +12,7 @@ class Backtrader_main_():
         #Set a cash value to start investments with
         cerebro.broker.set_cash(1000)
         #Import oracle OHLC Data as an example
-        dataSymbol = 'AFMD'
+        dataSymbol = 'IDEX'
         os.chdir('C:\SourceCode\TD-AmeritradeAPI\Backtrader .csv')
         data = backtrader.feeds.YahooFinanceCSVData(dataname= dataSymbol + '.csv',
                                             fromdate=datetime.datetime(2018, 1, 1),

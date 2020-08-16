@@ -272,7 +272,7 @@ class TDClient():
     def Historical_Endpoint(self, 
                             symbol:str, 
                             period_type:str=None, 
-                            period=None,
+                            period:str=None,
                             start_date:str=None, 
                             end_date:str=None,
                             frequency_type:str=None,
@@ -292,7 +292,8 @@ class TDClient():
                              'needExtendedHoursData': extended_hours
                              }
         # make a request
-        historicalContent = requests.get(url = historicalEndpoint, params = historicalPayload)
+        historicalContent = requests.get(url=historicalEndpoint, params=historicalPayload)
+        print(historicalContent)
         # convert it to a dictionary
         historicalData = historicalContent.json()
         print(historicalData)
@@ -447,7 +448,6 @@ class TDClient():
         twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
         df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
         df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
-        print(df_SMA)
         BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
         BuyTickers = BuyTickers.tolist()
         return BuyTickers
@@ -470,23 +470,24 @@ class TDClient():
         MACD_Signal_Values = pd.DataFrame.from_dict(MACD_signalTickers, orient='index')
         prevMACD_Signal = MACD_Signal_Values[2]
         dfprevMACD_Signal = pd.DataFrame(prevMACD_Signal)
-        print(dfprevMACD)
-        print(dfprevMACD_Signal)
         df_MACD = dfprevMACD.merge(dfprevMACD_Signal, left_index=True, right_index=True)
         df_MACD.rename(columns={'2_x':'MACD','2_y':'MACD Signal'}, inplace=True)
-        print(df_MACD)
         SellTickers = df_MACD[df_MACD['MACD'] < df_MACD['MACD Signal']].index
         SellTickers = SellTickers.tolist()
         return SellTickers
-    def readStream(self, symbol=None):
+    def readStream(self, positions=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
         os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
         streamData = {}
-        for Ticker in symbol:
-            streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])   
-            streamData[Ticker] = streamDate[Ticker].iloc[:,2].mean()
-        return streamData
-#ORDERS
+        streamQuote = {}
+        askPrice = {}
+        for Ticker in positions:
+            streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])
+            streamQuote[Ticker] = streamData[Ticker].iloc[-1] 
+            askPrice[Ticker] = streamQuote[Ticker]['AskPrice']
+            askPrice = pd.DataFrame(data=askPrice, index=askPrice.keys())
+        return askPrice
+#Account Info
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
                         'apikey':client_id
@@ -501,28 +502,51 @@ class TDClient():
         buyingPower = accntInfo['securitiesAccount']['projectedBalances']['availableFunds']
         buyingPower = float(buyingPower)
         return buyingPower
-    def accntAssets(self, accntNmber=None, symbol=None):
-        accntInfo = self.accounts(accntNmber)
+    def accntAssets(self,accntNmber=None,symbol=None):
+        accntInfo = self.accounts(accntNmber=accntNmber)
         assets = {}
-        lenAssets = ((len(symbol))+1)
-        i=0
-        while (i <= lenAssets-i):
-            assets[i] = accntInfo['securitiesAccount']['positions'][i]['instrument']['symbol']  
-            data = assets.values()
-            Positions = list(data)
-            i=i+1
+        lenAssets = len(symbol)
+        try:
+            for i in range(lenAssets):
+                assets[i] = accntInfo['securitiesAccount']['positions'][i]['instrument']['symbol']  
+                data = assets.values()
+                Positions = list(data)
+        except IndexError:
+            'N/A'
         return Positions
-    def assetQuantity(self, symbol):
-        accntInfo = self.accounts(accntNmber)
+    def assetQuantity(self,accntNmber=None,symbol=None):
+        accntInfo = self.accounts(accntNmber=accntNmber)
         quantity = {}
-        lenAssets = ((len(symbol))+1)
-        i=0
-        while (i <= lenAssets-i):
-            assets[i] = accntInfo['securitiesAccount']['positions'][i]['instrument']['symbol'][i]['settledLongQuantity']  
-            data = assets.values()
-            Quantity = list(data)
-            i=i+1
+        lenAssets = len(symbol)
+        try:
+            for i in range(lenAssets):
+                quantity[i] = accntInfo['securitiesAccount']['positions'][i]['longQuantity']  
+                data = quantity.values()
+                Quantity = list(data)
+        except IndexError:
+            'N/A'
         return Quantity
+    def TDA_Portfolio(self, symbol, accntNmber):
+        Assets = self.accntAssets(accntNmber=accntNmber, symbol=symbol)
+        Positions = self.assetQuantity(accntNmber=accntNmber, symbol=symbol)
+        dfAssets = pd.DataFrame(Assets)
+        dfPositions = pd.DataFrame(Positions)
+        dfPortfolio = dfAssets.merge(dfPositions, left_index=True, right_index=True)
+        dfPortfolio.rename(columns={'0_x':'Ticker','0_y':'Quantity'}, inplace=True)
+        return dfPortfolio
+#Orders
+    def shareNum_buy(self, positions=None):
+        quotePrice = self.readStream(positions=positions)
+        if quotePrice.values() <= 1.00:
+            shares = 100
+        elif quotePrice.value() <= 2.00:
+            shares = 50
+        elif quotePrice.value() <= 3.00:
+            shares=15
+        else:
+            #cancel order endpoint
+            print('Too expensive do not buy.')
+        return shares
     def BuyMarketOrder(self, shares:str, ticker:str):
         Order = {'orderType': 'MARKET',
                  'session': 'NORMAL',
