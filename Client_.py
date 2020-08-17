@@ -282,6 +282,7 @@ class TDClient():
         # daily proces endpoint
         historicalEndpoint = r'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format(symbol)
         # define a payload
+        merged_headers = self.headers()
         historicalPayload = {'apikey':client_id,
                              'period': period,
                              'periodType': period_type,
@@ -292,7 +293,7 @@ class TDClient():
                              'needExtendedHoursData': extended_hours
                              }
         # make a request
-        historicalContent = requests.get(url=historicalEndpoint, params=historicalPayload)
+        historicalContent = requests.get(url=historicalEndpoint, headers=merged_headers, params=historicalPayload)
         print(historicalContent)
         # convert it to a dictionary
         historicalData = historicalContent.json()
