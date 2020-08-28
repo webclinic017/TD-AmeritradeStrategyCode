@@ -49,9 +49,7 @@ class Test_Strategy(backtrader.Strategy):
         if self.order:
             return
         if not self.position:
-            if self.dataclose[0] < self.bollingerBands.lines.bot:
-                if self.rsi[0] > 30:
-                    self.order = self.buy()
-        elif self.dataclose[0] > self.bollingerBands.lines.top:
-                if self.rsi[0] > 70:
-                    self.order = self.sell()
+            if self.crossoverSMA > 0:
+                self.order = self.buy()
+        elif self.crossoverMACD < 0:
+                self.order = self.sell()

@@ -378,8 +378,7 @@ class TDClient():
         spanTwelveEMA = {}
         for ticker in symbol:
             spanTwelveEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwelveEMA[ticker] = spanTwelveEMA[ticker].iloc[:,5]
-            spanTwelveEMA[ticker] = spanTwelveEMA[ticker].ewm(span=12, adjust=False).mean()
+            spanTwelveEMA[ticker] = (spanTwelveEMA[ticker]['Close']).ewm(span=12,adjust=False).mean()
             spanTwelveEMA[ticker + ' ' + 'spanTwelveEMA'] = spanTwelveEMA.pop(ticker) 
             df_spanTwelveEMA = pd.DataFrame(spanTwelveEMA)
         return df_spanTwelveEMA
@@ -389,8 +388,7 @@ class TDClient():
         spanTwntySixEMA = {}
         for ticker in symbol:
             spanTwntySixEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwntySixEMA[ticker] = spanTwntySixEMA[ticker].iloc[:,5]
-            spanTwntySixEMA[ticker] = spanTwntySixEMA[ticker].ewm(span=26, adjust=False).mean()
+            spanTwntySixEMA[ticker] = (spanTwntySixEMA[ticker]['Close']).ewm(span=26, adjust=False).mean()
             spanTwntySixEMA[ticker + ' ' + 'spanTwntySixEMA'] = spanTwntySixEMA.pop(ticker) 
             df_spanTwntySixEMA = pd.DataFrame(spanTwntySixEMA)
         return df_spanTwntySixEMA
@@ -421,7 +419,8 @@ class TDClient():
         MACD_Signal = {}
         for ticker in symbol:
             MACD_Signal[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            MACD_Signal[ticker] = MACD_Signal[ticker].iloc[:,10].ewm(span=9, adjust=False).mean()
+            MACD_Signal[ticker] = (MACD_Signal[ticker].iloc[::-1,8])-(MACD_Signal[ticker].iloc[::-1,9])
+            MACD_Signal[ticker] = (MACD_Signal[ticker]).ewm(span=9, adjust=False).mean()
             MACD_Signal[ticker] = MACD_Signal.pop(ticker) 
             df_MACDsignal = pd.DataFrame(MACD_Signal)
         return df_MACDsignal
@@ -452,6 +451,20 @@ class TDClient():
         BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
         BuyTickers = BuyTickers.tolist()
         return BuyTickers
+    def MACD_buyTickers (self, symbol=None):
+        MACD_Tickers = self._MACD_Tickers(symbol=symbol)
+        MACD_Values = pd.DataFrame.from_dict(MACD_Tickers, orient='index')
+        prevMACD = MACD_Values[2]
+        dfprevMACD = pd.DataFrame(prevMACD)
+        MACD_signalTickers = self._MACD_signalTickers(symbol=symbol)
+        MACD_Signal_Values = pd.DataFrame.from_dict(MACD_signalTickers, orient='index')
+        prevMACD_Signal = MACD_Signal_Values[2]
+        dfprevMACD_Signal = pd.DataFrame(prevMACD_Signal)
+        df_MACD = dfprevMACD.merge(dfprevMACD_Signal, left_index=True, right_index=True)
+        df_MACD.rename(columns={'2_x':'MACD','2_y':'MACD Signal'}, inplace=True)
+        buyTickers = df_MACD[df_MACD['MACD'] > df_MACD['MACD Signal']].index
+        buyTickers = buyTickers.tolist()
+        return buyTickers
     def SMA_SellTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
@@ -486,7 +499,7 @@ class TDClient():
             streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])
             streamQuote[Ticker] = streamData[Ticker].iloc[-1] 
             askPrice[Ticker] = streamQuote[Ticker]['AskPrice']
-            askPrice = pd.DataFrame(data=askPrice, index=askPrice.keys())
+            #askPrice = pd.DataFrame(data=askPrice, index=askPrice.keys())
         return askPrice
 #Account Info
     def accounts(self, accntNmber=None):
@@ -537,16 +550,16 @@ class TDClient():
         return dfPortfolio
 #Orders
     def shareNum_buy(self, positions=None):
-        quotePrice = self.readStream(positions=positions)
-        if quotePrice.values() <= 1.00:
-            shares = 100
-        elif quotePrice.value() <= 2.00:
-            shares = 50
-        elif quotePrice.value() <= 3.00:
-            shares=15
+        quotePrice = self.readStream(positions=positions)      
+        quotePrice = [float(value) for value in quotePrice.values()]
+        if quotePrice <= [1.00]:
+            shares = 3
+        elif quotePrice <= [2.00]:
+            shares = 2
+        elif quotePrice <= [3.00]:
+            shares = 1
         else:
-            #cancel order endpoint
-            print('Too expensive do not buy.')
+            shares = 0
         return shares
     def BuyMarketOrder(self, shares:str, ticker:str):
         Order = {'orderType': 'MARKET',
@@ -596,7 +609,7 @@ class TDClient():
         Date = time.strftime('%Y-%m-%d', time.localtime())
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
         orderData = self.SellMarketOrder(shares=shares, ticker=ticker)
-        Summary = {'orderType': orderData['orderType'][0],
+        Summary = {'orderType': orderData['orderType'],
                       'Date': Date,
                       'Time': TimeSec,
                       'orderLegCollection':[{'instruction':orderData['orderLegConstuction']['instruction'],

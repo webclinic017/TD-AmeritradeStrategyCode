@@ -16,7 +16,7 @@ TDSession = TDClient(account_number = accntNmber,
                      account_password = password,
                      redirect_uri = 'http://localhost/',
                      consumer_id = client_id,
-                     cache_state = True
+                     #cache_state = True
                      )
 TDSession.login()
 print(TDSession.state['loggedin']) 
@@ -24,7 +24,7 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 45
+Num_DayMAInputs = 225
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
@@ -45,63 +45,72 @@ for Symbol in symbol:
         HistMonth = datetime.fromtimestamp(HistDate).month
         HistDay = datetime.fromtimestamp(HistDate).day
         NumbDays = date(HistYear,HistMonth,HistDay).isoweekday()
-        if NumbDays <= Num_DayMAInputs:
-            X_DayMA = TDSession.Historical_Endpoint(symbol=hist_symbol, 
-                                                    period=hist_period,
-                                                    period_type=hist_periodType,
-                                                    frequency_type=hist_frequencyType,
-                                                    start_date=hist_startDate,
-                                                    end_date=hist_endDate,
-                                                    frequency=hist_frequency,
-                                                    extended_hours=hist_needExtendedHoursData
-                                                   )
-        else:
-            False
-    time.sleep(5)
+        if NumbDays <= 5:
+            if NumbDays <= Num_DayMAInputs:
+                X_DayMA = TDSession.Historical_Endpoint(symbol=hist_symbol, 
+                                                        period=hist_period,
+                                                        period_type=hist_periodType,
+                                                        frequency_type=hist_frequencyType,
+                                                        start_date=hist_startDate,
+                                                        end_date=hist_endDate,
+                                                        frequency=hist_frequency,
+                                                        extended_hours=hist_needExtendedHoursData
+                                                       )
+            else:
+                False
+    time.sleep(2)
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
 MACD_spanTwntySix = TDSession.spanTwntySixEMA(symbol=symbol)
 MACD = TDSession._MACD_(symbol=symbol)
+print(MACD)
 MACD_Tickers = TDSession._MACD_Tickers(symbol=symbol)
 SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol, SimpleMovingAverage=SimpleMovingAverage)
 EMA_toCSV = TDSession._EMA_toCSV(symbol=symbol,spantwelveEMA=MACD_spanTwelve, spanTwntySixEMA=MACD_spanTwntySix, _MACD_=MACD)
 MACD_Signal = TDSession.MACD_Signal(symbol=symbol)
+print(MACD_Signal)
 MACD_SignalToCSV = TDSession._MACD_SignaltoCSV(symbol=symbol,MACD_Signal=MACD_Signal)
 BuyTickers = TDSession.BuyTickers(symbol=symbol)
+MACD_buyTickers = TDSession.MACD_buyTickers(symbol=symbol)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
+print(TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
-print(positions)
 streamPrice = TDSession.readStream(positions=positions)
-print(streamPrice)
 shares = TDSession.shareNum_buy(positions=positions)
-print(shares)
-'''
 #Simple Moving Average Logic
 Buy = []
 for position in BuyTickers:
-    if not position in Assets:
-        shares = 5
-        print('Buy' + ' ' + position)
-        PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
-        SellOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
-    else:
-        print('You already own' + ' ' + position)
+    for position in MACD_buyTickers:
+        if not position in positions:
+            if shares == 0:
+                pass
+            else:
+                shares = shares
+                print('Buy ' + shares + ' of' + position)
+                PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
+                #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
+        else:
+            print('You already own' + ' ' + position)
 Sell = []
-for position in Assets:
-    if position in SellTickers:
-        shares = 5
+for position in positions:
+    if position in MACD_SellTickers:
+        ticker = TD_Portfolio.set_index('Ticker')
+        Positions = ticker.to_dict(orient='dict')
+        shares = Positions['Quantity'][position]
         print('Sell' + ' ' + position)
         SellMarketOrder = TDSession.sellPositions(accntNmber=accntNmber, shares=shares, ticker=position)
-        SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
+        print(position + 'Sold')
+        #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
+'''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy
