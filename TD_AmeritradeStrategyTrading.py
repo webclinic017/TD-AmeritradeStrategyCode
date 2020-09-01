@@ -24,7 +24,7 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 225
+Num_DayMAInputs = 50
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
@@ -71,9 +71,12 @@ EMA_toCSV = TDSession._EMA_toCSV(symbol=symbol,spantwelveEMA=MACD_spanTwelve, sp
 MACD_Signal = TDSession.MACD_Signal(symbol=symbol)
 print(MACD_Signal)
 MACD_SignalToCSV = TDSession._MACD_SignaltoCSV(symbol=symbol,MACD_Signal=MACD_Signal)
-BuyTickers = TDSession.BuyTickers(symbol=symbol)
+SMABuyTickers = TDSession.SMABuyTickers(symbol=symbol)
+print(SMABuyTickers)
 MACD_buyTickers = TDSession.MACD_buyTickers(symbol=symbol)
+print(MACD_buyTickers)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
+print(SMA_SellTickers)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
@@ -82,18 +85,19 @@ print(TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
+'''
 streamPrice = TDSession.readStream(positions=positions)
 shares = TDSession.shareNum_buy(positions=positions)
 #Simple Moving Average Logic
 Buy = []
-for position in BuyTickers:
-    for position in MACD_buyTickers:
+for position in SMABuyTickers:
+    for SMABuyTickers in MACD_buyTickers:
         if not position in positions:
             if shares == 0:
                 pass
             else:
                 shares = shares
-                print('Buy ' + shares + ' of' + position)
+                print('Buy ' + position)
                 PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
                 #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
         else:
@@ -110,6 +114,7 @@ for position in positions:
         #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
+'''
 '''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f

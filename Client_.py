@@ -360,7 +360,7 @@ class TDClient():
         fiftyDaySMA = {}
         for ticker in symbol:
             fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            fiftyDaySMA[ticker] = fiftyDaySMA[ticker].iloc[:31,7].mean()
+            fiftyDaySMA[ticker] = fiftyDaySMA[ticker].iloc[:31,7].rolling(window=28, min_periods=0).mean()
             #fiftyDaySMA[ticker + ' ' + '50DaySMA'] = fiftyDaySMA.pop(ticker)
         return fiftyDaySMA
     def twentyDaySMA(self,symbol=None):
@@ -369,7 +369,7 @@ class TDClient():
         twentyDaySMA = {}
         for ticker in symbol:
             twentyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:11,7].mean()
+            twentyDaySMA[ticker] = twentyDaySMA[ticker].iloc[:11,7].rolling(window=10, min_periods=0).mean()
             #twentyDaySMA[ticker + ' ' + '20DaySMA'] = twentyDaySMA.pop(ticker)
         return twentyDaySMA
     def spanTwelveEMA(self,symbol=None):
@@ -378,7 +378,7 @@ class TDClient():
         spanTwelveEMA = {}
         for ticker in symbol:
             spanTwelveEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwelveEMA[ticker] = (spanTwelveEMA[ticker]['Close']).ewm(span=12,adjust=False).mean()
+            spanTwelveEMA[ticker] = (spanTwelveEMA[ticker]['Close'].loc[:,-1]).ewm(span=12,adjust=False).mean()
             spanTwelveEMA[ticker + ' ' + 'spanTwelveEMA'] = spanTwelveEMA.pop(ticker) 
             df_spanTwelveEMA = pd.DataFrame(spanTwelveEMA)
         return df_spanTwelveEMA
@@ -388,7 +388,7 @@ class TDClient():
         spanTwntySixEMA = {}
         for ticker in symbol:
             spanTwntySixEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwntySixEMA[ticker] = (spanTwntySixEMA[ticker]['Close']).ewm(span=26, adjust=False).mean()
+            spanTwntySixEMA[ticker] = (spanTwntySixEMA[ticker]['Close'].loc[:,-1]).ewm(span=26, adjust=False).mean()
             spanTwntySixEMA[ticker + ' ' + 'spanTwntySixEMA'] = spanTwntySixEMA.pop(ticker) 
             df_spanTwntySixEMA = pd.DataFrame(spanTwntySixEMA)
         return df_spanTwntySixEMA
@@ -419,7 +419,7 @@ class TDClient():
         MACD_Signal = {}
         for ticker in symbol:
             MACD_Signal[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            MACD_Signal[ticker] = (MACD_Signal[ticker].iloc[::-1,8])-(MACD_Signal[ticker].iloc[::-1,9])
+            MACD_Signal[ticker] = (MACD_Signal[ticker].iloc[:,8])-(MACD_Signal[ticker].iloc[:,9])
             MACD_Signal[ticker] = (MACD_Signal[ticker]).ewm(span=9, adjust=False).mean()
             MACD_Signal[ticker] = MACD_Signal.pop(ticker) 
             df_MACDsignal = pd.DataFrame(MACD_Signal)
@@ -441,14 +441,20 @@ class TDClient():
             df = df.merge(MACD_Signal[[Ticker]], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
 #BUY/SELL SIGNALS
-    def BuyTickers(self,symbol=None):
+    def SMABuyTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
+        fiftyDaySMA_Values = pd.DataFrame(fiftyDaySMA_Values)
+        fiftyDaySMA_Values = fiftyDaySMA_Values.iloc[:,-1]
+        fiftyDaySMA_Values = fiftyDaySMA_Values.to_frame()
         twentyDaySMA = self.twentyDaySMA(symbol=symbol)
         twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
+        twentyDaySMA_Values = pd.DataFrame(twentyDaySMA_Values)
+        twentyDaySMA_Values = twentyDaySMA_Values.iloc[:,-1]
+        twentyDaySMA_Values = twentyDaySMA_Values.to_frame()
         df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
-        df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
-        BuyTickers = df_SMA[df_SMA['twentyDaySMA'] > df_SMA['fiftyDaySMA']].index
+        df_SMA.rename(columns={10:'fastSMA',30:'slowSMA'}, inplace=True)
+        BuyTickers = df_SMA[df_SMA['fastSMA'] > df_SMA['slowSMA']].index
         BuyTickers = BuyTickers.tolist()
         return BuyTickers
     def MACD_buyTickers (self, symbol=None):
@@ -468,11 +474,18 @@ class TDClient():
     def SMA_SellTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
+        fiftyDaySMA_Values = pd.DataFrame(fiftyDaySMA_Values)
+        fiftyDaySMA_Values = fiftyDaySMA_Values.iloc[:,-1]
+        fiftyDaySMA_Values = fiftyDaySMA_Values.to_frame()
         twentyDaySMA = self.twentyDaySMA(symbol=symbol)
         twentyDaySMA_Values = pd.DataFrame.from_dict(twentyDaySMA, orient='index')
+        twentyDaySMA_Values = pd.DataFrame(twentyDaySMA_Values)
+        twentyDaySMA_Values = twentyDaySMA_Values.iloc[:,-1]
+        twentyDaySMA_Values = twentyDaySMA_Values.to_frame()
         df_SMA = twentyDaySMA_Values.merge(fiftyDaySMA_Values, left_index=True, right_index=True)
-        df_SMA.rename(columns={'0_x':'twentyDaySMA','0_y':'fiftyDaySMA'}, inplace=True)
-        SellTickers = df_SMA[df_SMA['twentyDaySMA'] < df_SMA['fiftyDaySMA']].index
+        df_SMA.rename(columns={10:'fastSMA',30:'slowSMA'}, inplace=True)
+        print(df_SMA)
+        SellTickers = df_SMA[df_SMA['fastSMA'] < df_SMA['slowSMA']].index
         SellTickers = SellTickers.tolist()
         return SellTickers
     def MACD_SellTickers(self,symbol=None):
