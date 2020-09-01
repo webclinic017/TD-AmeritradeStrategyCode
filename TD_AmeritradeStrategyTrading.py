@@ -64,20 +64,18 @@ SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
 MACD_spanTwntySix = TDSession.spanTwntySixEMA(symbol=symbol)
 MACD = TDSession._MACD_(symbol=symbol)
-print(MACD)
 MACD_Tickers = TDSession._MACD_Tickers(symbol=symbol)
 SMA_toCSV = TDSession._SMA_toCSV(symbol=symbol, SimpleMovingAverage=SimpleMovingAverage)
 EMA_toCSV = TDSession._EMA_toCSV(symbol=symbol,spantwelveEMA=MACD_spanTwelve, spanTwntySixEMA=MACD_spanTwntySix, _MACD_=MACD)
 MACD_Signal = TDSession.MACD_Signal(symbol=symbol)
-print(MACD_Signal)
 MACD_SignalToCSV = TDSession._MACD_SignaltoCSV(symbol=symbol,MACD_Signal=MACD_Signal)
 SMABuyTickers = TDSession.SMABuyTickers(symbol=symbol)
 print(SMABuyTickers)
 MACD_buyTickers = TDSession.MACD_buyTickers(symbol=symbol)
 print(MACD_buyTickers)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
-print(SMA_SellTickers)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
+print(MACD_SellTickers)
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
@@ -85,7 +83,6 @@ print(TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
-'''
 streamPrice = TDSession.readStream(positions=positions)
 shares = TDSession.shareNum_buy(positions=positions)
 #Simple Moving Average Logic
@@ -114,7 +111,6 @@ for position in positions:
         #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
-'''
 '''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f

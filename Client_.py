@@ -316,30 +316,30 @@ class TDClient():
     #CSV Dates are incorrect (Accounts for Weekends)
     def _write_OHLC_to_csv(self, OHLC, Symbol):
         Date = self.epoch_datetime()
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC'):
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC'):
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
         else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date)
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
             with open((Symbol + '_' + 'OHLC' + '_' + Date + '.csv'), mode='a+', newline='') as OHLC_file:           
                 OHLC_writer = csv.writer(OHLC_file)
                 historicalData = OHLC
                 if os.path.getsize((Symbol + '_' + 'OHLC' + '_' + Date + '.csv')) == 0:
                     OHLC_writer.writerow(['Symbol','Date','Open','High','Low','Close','Volume'])
                 OHLC_writer.writerow(historicalData)
-                os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+                os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode')
 #INDICATORS
     def _SMA_(self, symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime()) 
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         SMA = {}
         for Ticker in symbol:
             SMA[Ticker] = pd.read_csv(Ticker + '_' + 'OHLC' + '_' + Date + '.csv')
@@ -349,14 +349,14 @@ class TDClient():
         return dfSMA_data
     def _SMA_toCSV(self, symbol=None, SimpleMovingAverage=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(SimpleMovingAverage[[Ticker + ' ' + 'SMA']], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
     def fiftyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         fiftyDaySMA = {}
         for ticker in symbol:
             fiftyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
@@ -365,7 +365,7 @@ class TDClient():
         return fiftyDaySMA
     def twentyDaySMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         twentyDaySMA = {}
         for ticker in symbol:
             twentyDaySMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
@@ -374,27 +374,27 @@ class TDClient():
         return twentyDaySMA
     def spanTwelveEMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         spanTwelveEMA = {}
         for ticker in symbol:
             spanTwelveEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwelveEMA[ticker] = (spanTwelveEMA[ticker]['Close'].loc[:,-1]).ewm(span=12,adjust=False).mean()
+            spanTwelveEMA[ticker] = (spanTwelveEMA[ticker].iloc[::-1,5]).ewm(span=12,adjust=False).mean()
             spanTwelveEMA[ticker + ' ' + 'spanTwelveEMA'] = spanTwelveEMA.pop(ticker) 
             df_spanTwelveEMA = pd.DataFrame(spanTwelveEMA)
         return df_spanTwelveEMA
     def spanTwntySixEMA(self,symbol=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         spanTwntySixEMA = {}
         for ticker in symbol:
             spanTwntySixEMA[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            spanTwntySixEMA[ticker] = (spanTwntySixEMA[ticker]['Close'].loc[:,-1]).ewm(span=26, adjust=False).mean()
+            spanTwntySixEMA[ticker] = (spanTwntySixEMA[ticker].iloc[::-1,5]).ewm(span=26, adjust=False).mean()
             spanTwntySixEMA[ticker + ' ' + 'spanTwntySixEMA'] = spanTwntySixEMA.pop(ticker) 
             df_spanTwntySixEMA = pd.DataFrame(spanTwntySixEMA)
         return df_spanTwntySixEMA
     def _MACD_(self,symbol):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         spanTwelveEMA = self.spanTwelveEMA(symbol=symbol)
         spanTwntySixEMA = self.spanTwntySixEMA(symbol=symbol)
         MACD = {}
@@ -415,18 +415,18 @@ class TDClient():
         return MACD_signalTickers
     def MACD_Signal(self,symbol):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         MACD_Signal = {}
         for ticker in symbol:
             MACD_Signal[ticker] = pd.read_csv((ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            MACD_Signal[ticker] = (MACD_Signal[ticker].iloc[:,8])-(MACD_Signal[ticker].iloc[:,9])
+            MACD_Signal[ticker] = (MACD_Signal[ticker].iloc[::-1,8])-(MACD_Signal[ticker].iloc[::-1,9])
             MACD_Signal[ticker] = (MACD_Signal[ticker]).ewm(span=9, adjust=False).mean()
             MACD_Signal[ticker] = MACD_Signal.pop(ticker) 
             df_MACDsignal = pd.DataFrame(MACD_Signal)
         return df_MACDsignal
     def _EMA_toCSV(self, symbol, spantwelveEMA=None, spanTwntySixEMA=None, _MACD_=None, MACD_Signal=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(spantwelveEMA[[Ticker + ' ' + 'spanTwelveEMA']], left_index=True, right_index=True)
@@ -435,7 +435,7 @@ class TDClient():
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
     def _MACD_SignaltoCSV(self, symbol=None, MACD_Signal=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'OHLC')
         for Ticker in symbol:
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(MACD_Signal[[Ticker]], left_index=True, right_index=True)
@@ -460,14 +460,15 @@ class TDClient():
     def MACD_buyTickers (self, symbol=None):
         MACD_Tickers = self._MACD_Tickers(symbol=symbol)
         MACD_Values = pd.DataFrame.from_dict(MACD_Tickers, orient='index')
-        prevMACD = MACD_Values[2]
+        prevMACD = MACD_Values[0]
         dfprevMACD = pd.DataFrame(prevMACD)
         MACD_signalTickers = self._MACD_signalTickers(symbol=symbol)
         MACD_Signal_Values = pd.DataFrame.from_dict(MACD_signalTickers, orient='index')
-        prevMACD_Signal = MACD_Signal_Values[2]
+        prevMACD_Signal = MACD_Signal_Values[0]
         dfprevMACD_Signal = pd.DataFrame(prevMACD_Signal)
         df_MACD = dfprevMACD.merge(dfprevMACD_Signal, left_index=True, right_index=True)
-        df_MACD.rename(columns={'2_x':'MACD','2_y':'MACD Signal'}, inplace=True)
+        df_MACD.rename(columns={'0_x':'MACD','0_y':'MACD Signal'}, inplace=True)
+        print(df_MACD)
         buyTickers = df_MACD[df_MACD['MACD'] > df_MACD['MACD Signal']].index
         buyTickers = buyTickers.tolist()
         return buyTickers
@@ -491,20 +492,20 @@ class TDClient():
     def MACD_SellTickers(self,symbol=None):
         MACD_Tickers = self._MACD_Tickers(symbol=symbol)
         MACD_Values = pd.DataFrame.from_dict(MACD_Tickers, orient='index')
-        prevMACD = MACD_Values[2]
+        prevMACD = MACD_Values[0]
         dfprevMACD = pd.DataFrame(prevMACD)
         MACD_signalTickers = self._MACD_signalTickers(symbol=symbol)
         MACD_Signal_Values = pd.DataFrame.from_dict(MACD_signalTickers, orient='index')
-        prevMACD_Signal = MACD_Signal_Values[2]
+        prevMACD_Signal = MACD_Signal_Values[0]
         dfprevMACD_Signal = pd.DataFrame(prevMACD_Signal)
         df_MACD = dfprevMACD.merge(dfprevMACD_Signal, left_index=True, right_index=True)
-        df_MACD.rename(columns={'2_x':'MACD','2_y':'MACD Signal'}, inplace=True)
+        df_MACD.rename(columns={'0_x':'MACD','0_y':'MACD Signal'}, inplace=True)
         SellTickers = df_MACD[df_MACD['MACD'] < df_MACD['MACD Signal']].index
         SellTickers = SellTickers.tolist()
         return SellTickers
     def readStream(self, positions=None):
         Date = time.strftime('%Y-%m-%d', time.localtime())
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+        os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
         streamData = {}
         streamQuote = {}
         askPrice = {}
