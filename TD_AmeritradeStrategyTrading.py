@@ -29,6 +29,7 @@ symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data
+'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -58,7 +59,8 @@ for Symbol in symbol:
                                                        )
             else:
                 False
-    time.sleep(2)
+    time.sleep(60)
+'''
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
@@ -70,12 +72,11 @@ EMA_toCSV = TDSession._EMA_toCSV(symbol=symbol,spantwelveEMA=MACD_spanTwelve, sp
 MACD_Signal = TDSession.MACD_Signal(symbol=symbol)
 MACD_SignalToCSV = TDSession._MACD_SignaltoCSV(symbol=symbol,MACD_Signal=MACD_Signal)
 SMABuyTickers = TDSession.SMABuyTickers(symbol=symbol)
-print(SMABuyTickers)
 MACD_buyTickers = TDSession.MACD_buyTickers(symbol=symbol)
-print(MACD_buyTickers)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
 print(MACD_SellTickers)
+buy = [value for value in SMABuyTickers if value in MACD_buyTickers]
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
@@ -87,18 +88,17 @@ streamPrice = TDSession.readStream(positions=positions)
 shares = TDSession.shareNum_buy(positions=positions)
 #Simple Moving Average Logic
 Buy = []
-for position in SMABuyTickers:
-    for SMABuyTickers in MACD_buyTickers:
-        if not position in positions:
-            if shares == 0:
-                pass
-            else:
-                shares = shares
-                print('Buy ' + position)
-                PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
-                #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
+for position in buy:
+    if not position in positions:
+        if shares == 0:
+            pass
         else:
-            print('You already own' + ' ' + position)
+            shares = shares
+            print('Buy ' + position)
+            PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
+           #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
+    else:
+        print('You already own' + ' ' + position)
 Sell = []
 for position in positions:
     if position in MACD_SellTickers:
