@@ -29,7 +29,6 @@ symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
     #Accounts for weekend repetative data
-'''
 for Symbol in symbol:
     hist_endDate = str(int(round(datetime.now().timestamp() * 1000)))
     hist_symbol = Symbol
@@ -60,7 +59,6 @@ for Symbol in symbol:
             else:
                 False
     time.sleep(60)
-'''
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
@@ -77,6 +75,7 @@ SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
 print(MACD_SellTickers)
 buy = [value for value in SMABuyTickers if value in MACD_buyTickers]
+print(buy)
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
