@@ -44,8 +44,8 @@ class TDStreamerClient(object):
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
         SymNum = 10#self.symbol_numbers() 
         import os
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
-           os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData'):                
+           os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
            if self.CSV_APPEND_MODE == True:
                csv_write_mode = 'a+'
            else:
@@ -59,8 +59,8 @@ class TDStreamerClient(object):
                    data = [Symbol, AskPrice, TimeSec]
                    stream_writer.writerow(data)
         else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\\Data' + '\\' + Date + '\\' + 'StreamData')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
+            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
             if self.CSV_APPEND_MODE == True:
                 csv_write_mode = 'a+'
             else:
