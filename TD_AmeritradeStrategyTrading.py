@@ -83,21 +83,23 @@ print(TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
-streamPrice = TDSession.readStream(positions=positions)
-shares = TDSession.shareNum_buy(positions=positions)
 #Simple Moving Average Logic
 Buy = []
 for position in buy:
-    if not position in positions:
+    position = [position]
+    streamPrice = TDSession.readStream(position=position)
+    shares = TDSession.shareNum_buy(position=position)
+for ticker in buy:
+    if not ticker in positions:
         if shares == 0:
             pass
         else:
             shares = shares
-            print('Buy ' + position)
-            PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=position)
+            print('Buy ' + ticker)
+            PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
            #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
     else:
-        print('You already own' + ' ' + position)
+        print('You already own' + ' ' + ticker)
 Sell = []
 for position in positions:
     if position in MACD_SellTickers:

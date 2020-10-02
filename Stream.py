@@ -29,12 +29,13 @@ class TDStreamerClient(object):
             self.CSV_APPEND_MODE = True
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
-    def symbol_numbers(self):
-        with open('WatchList.csv', mode='r', newline='') as watchlist:
-            WatchList = csv.reader(watchlist, delimiter=',')
-            #for Symbol in WatchList:
-            #    SymNum = len(WatchList)
-            #return SymNum
+    def symbol_numbers(self, data=None):
+        #with open('WatchList.csv', mode='r', newline='') as watchlist:
+        #    WatchList = csv.reader(watchlist, delimiter=',')
+        symbol = data.keys()
+        for Symbol in range(len(data.keys())):
+            SymNum = data[0]['content'][Symbol]['key']
+        return SymNum
     def epoch_datetime(self):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
@@ -42,10 +43,10 @@ class TDStreamerClient(object):
     async def _write_stream_to_csv(self, data=None):      
         Date = self.epoch_datetime()
         TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        SymNum = 10#self.symbol_numbers() 
+        SymNum = self.symbol_numbers() 
         import os
-        if path.exists('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData'):                
-           os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
+        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
+           os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
            if self.CSV_APPEND_MODE == True:
                csv_write_mode = 'a+'
            else:
@@ -59,8 +60,8 @@ class TDStreamerClient(object):
                    data = [Symbol, AskPrice, TimeSec]
                    stream_writer.writerow(data)
         else:
-            os.mkdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
-            os.chdir('C:\Dan\Projects\TD_API\TD-AmeritradeStrategyCode\Data' + '\\' + Date + '\\' + 'StreamData')
+            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
+            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
             if self.CSV_APPEND_MODE == True:
                 csv_write_mode = 'a+'
             else:
@@ -137,6 +138,7 @@ class TDStreamerClient(object):
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
                             await self._write_stream_to_csv(data = message_decoded['data'])
+                            await self.symbol_numbers(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
