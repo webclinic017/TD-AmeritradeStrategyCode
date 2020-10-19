@@ -29,21 +29,16 @@ class TDStreamerClient(object):
             self.CSV_APPEND_MODE = True
         elif append_mode == False:
             self.CSV_APPEND_MODE = False
-    def symbol_numbers(self, data=None):
-        #with open('WatchList.csv', mode='r', newline='') as watchlist:
-        #    WatchList = csv.reader(watchlist, delimiter=',')
-        symbol = data.keys()
-        for Symbol in range(len(data.keys())):
-            SymNum = data[0]['content'][Symbol]['key']
-        return SymNum
     def epoch_datetime(self):
         TimeDay = time.strftime('%Y-%m-%d', time.localtime()) 
         TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
-        return TimeDay    
-    async def _write_stream_to_csv(self, data=None):      
+        return TimeDay   
+    async def _write_stream_to_csv(self, data=None):
+        num = data[0]['content']
+        Sym = [i['key'] for i in num]
+        SymNum = len(Sym)
         Date = self.epoch_datetime()
-        TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        SymNum = self.symbol_numbers() 
+        TimeSec = time.strftime('%I:%M:%S', time.localtime()) 
         import os
         if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData'):                
            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'StreamData')
@@ -138,7 +133,7 @@ class TDStreamerClient(object):
                     if 'data' in message_decoded.keys():
                         if message_decoded['data'][0]['service'] in approved_writes:
                             await self._write_stream_to_csv(data = message_decoded['data'])
-                            await self.symbol_numbers(data = message_decoded['data'])
+                            #await self.symbol_numbers(data = message_decoded['data'])
                             await self.epoch_to_datetime(data = message_decoded['data'])
                 except:
                     message_decoded = message
