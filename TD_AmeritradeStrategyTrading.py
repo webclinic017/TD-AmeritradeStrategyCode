@@ -58,7 +58,7 @@ for Symbol in symbol:
                                                        )
             else:
                 False
-    time.sleep(60)
+    time.sleep(10)
 #Call Simple moving average values for each symbol in watchlist
 SimpleMovingAverage = TDSession._SMA_(symbol=symbol)
 MACD_spanTwelve = TDSession.spanTwelveEMA(symbol=symbol)
