@@ -24,7 +24,7 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 50
+Num_DayMAInputs = 37
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
@@ -73,23 +73,99 @@ SMABuyTickers = TDSession.SMABuyTickers(symbol=symbol)
 MACD_buyTickers = TDSession.MACD_buyTickers(symbol=symbol)
 SMA_SellTickers = TDSession.SMA_SellTickers(symbol=symbol)
 MACD_SellTickers = TDSession.MACD_SellTickers(symbol=symbol)
-print(MACD_SellTickers)
+Momentum = TDSession.Momentum(symbol=symbol)
+print(Momentum)
+two_stdevSell = TDSession.two_stdevSell(symbol=symbol)
+print(two_stdevSell)
+two_stdevSellTickers = TDSession.two_stdevSellTickers(symbol=symbol)
+CloseMeanSell = TDSession.CloseMeanSell(symbol=symbol)
+print(CloseMeanSell)
+CloseMeanSellTickers = TDSession.CloseMeanSellTickers(symbol=symbol)
+CloseTrend = TDSession.CloseTrend(symbol=symbol)
+print(CloseTrend)
+CloseMeanTrendSellTickers = TDSession.CloseMeanTrendSellTickers(symbol=symbol)
+ClosestdevSell = [value for value in  CloseMeanTrendSellTickers if value in CloseMeanSellTickers]
+print('Close below MeanClose and Trending Down: ', ClosestdevSell)
+print('MeanLow Sell Tickers above 2 standard deviation: ', two_stdevSellTickers)
+MomentumBuyTickers = TDSession.MomentumBuyTickers(symbol=symbol)
+print('MACD Sell Tickers: ', MACD_SellTickers)
 buy = [value for value in SMABuyTickers if value in MACD_buyTickers]
-print(buy)
+print('MACD and SMA Strategy Buying: ', buy)
+MomentumMACD_buy = [value for value in MomentumBuyTickers if value in MACD_buyTickers]
+print('MACD and Momentum Strategy Buying: ', MomentumMACD_buy)
 #Account information to place orders
 BuyingPower = TDSession.BuyingPower(accntNmber=accntNmber)
 TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
-print(TD_Portfolio)
+print('Portfolio: ', TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
-#Simple Moving Average Logic
-Buy = []
-for position in buy:
+#MACD and Momentum buy with stdev Sell
+Momentum_stdevBuy = []
+for position in MomentumMACD_buy:
+    ticker = str(position)
     position = [position]
     streamPrice = TDSession.readStream(position=position)
     shares = TDSession.shareNum_buy(position=position)
-for ticker in buy:
+    #for ticker in buy:
+    if not ticker in positions:
+        if not ticker in ClosestdevSell:
+            if not ticker in two_stdevSellTickers:
+                if not ticker in MACD_SellTickers:
+                    if shares == 0:
+                        pass
+                    else:
+                        shares = shares
+                        print('Buy ' + ticker)
+                        #PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
+                else:
+                    print(ticker + ' is MACD a sell Position')
+            else:
+                print(ticker + ' is a Standard Deviation sell Position')
+        else:
+            print(ticker + ' is a Low Close sell Position')
+    else:
+        print('You already own' + ' ' + ticker)
+StandardDeviationSell = []
+for position in positions:
+    if position in ClosestdevSell:
+        ticker = TD_Portfolio.set_index('Ticker')
+        Positions = ticker.to_dict(orient='dict')
+        shares = Positions['Quantity'][position]
+        print('Sell' + ' ' + position)
+        SellMarketOrder = TDSession.sellPositions(accntNmber=accntNmber, shares=shares, ticker=position)
+        print(position + ' Sold Due to Mean Close Stop Loss')
+        #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
+    else:
+        pass
+    if position in two_stdevSellTickers:
+        ticker = TD_Portfolio.set_index('Ticker')
+        Positions = ticker.to_dict(orient='dict')
+        shares = Positions['Quantity'][position]
+        print('Sell' + ' ' + position)
+        SellMarketOrder = TDSession.sellPositions(accntNmber=accntNmber, shares=shares, ticker=position)
+        print(position + ' Sold Due to Mean Low above Two Standard Deviation Stop Loss')
+        #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
+    else:
+        pass
+    if position in MACD_SellTickers:
+        ticker = TD_Portfolio.set_index('Ticker')
+        Positions = ticker.to_dict(orient='dict')
+        shares = Positions['Quantity'][position]
+        print('Sell' + ' ' + position)
+        SellMarketOrder = TDSession.sellPositions(accntNmber=accntNmber, shares=shares, ticker=position)
+        print(position + ' Sold Due to an Inverse MACD Stop Loss')
+        #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
+    else:
+        pass
+'''MACD and SMA Strategy
+Buy = []
+for position in buy:
+    ticker = str(position)
+    position = [position]
+    streamPrice = TDSession.readStream(position=position)
+    shares = TDSession.shareNum_buy(position=position)
+    #for ticker in buy:
     if not ticker in positions:
         if shares == 0:
             pass
@@ -97,7 +173,7 @@ for ticker in buy:
             shares = shares
             print('Buy ' + ticker)
             PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
-           #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
+               #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
     else:
         print('You already own' + ' ' + ticker)
 Sell = []
@@ -112,7 +188,6 @@ for position in positions:
         #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
-'''
 #Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
     #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
         #https://community.backtrader.com/topic/122/bband-strategy

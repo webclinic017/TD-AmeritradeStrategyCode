@@ -16,7 +16,8 @@ import pandas as pd
 import numpy as np
 import os
 from os import path
-import matplotlib.pyplot as plt
+
+
 
 class TDClient():
 
@@ -141,7 +142,7 @@ class TDClient():
                 'refresh_token':self.state['refresh_token'],
                 'access_type':'offline'
                }
-        response = requests.post(url = self.config['token_endpoint'], data=data, verify=True)
+        response = requests.post(url = self.config['token_endpoint'], data=data, verify=True) 
         if response.status_code == 401:
             print('The Credentials you passed through are invalid.')
             return False
@@ -254,6 +255,7 @@ class TDClient():
 #WATCHLIST
 #Reads the tickers you have added to the watchlist.csv togather OHLC and streaming price data
     def multiple_symbol_watchlist(self, symbols=None):
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI')
         with open('WatchList.csv', newline='') as watchlist:
             WatchList = csv.reader(watchlist, delimiter=',')
             for Symbol in WatchList:
@@ -440,6 +442,129 @@ class TDClient():
             df = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
             df = df.merge(MACD_Signal[[Ticker]], left_index=True, right_index=True)
             df.to_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'), index=False)
+    def Momentum(self, symbol):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        prevClose = {}
+        lookBack = {}
+        momentum = {}
+        for Ticker in symbol:
+            prevClose[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            prevClose[Ticker] = prevClose[Ticker].iloc[0,5]
+            lookBack[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            lookBack[Ticker] = lookBack[Ticker].iloc[11,5]
+            momentum[Ticker] = prevClose[Ticker] - lookBack[Ticker]
+            #momentum[Ticker] = momentum.pop(Ticker)
+            df_momentum = pd.DataFrame([momentum])
+            df_momentum = df_momentum.transpose()
+            df_momentum.rename(columns={0:'Momentum'}, inplace=True)
+        return df_momentum
+    def stdev(self, symbol):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        stdev = {}
+        for Ticker in symbol:
+            stdev[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            stdev[Ticker] = stdev[Ticker].iloc[:,5]
+            stdev[Ticker] = np.std(stdev[Ticker])
+            #stdev[Ticker] = stdev.pop(Ticker)
+            df_stdev = pd.DataFrame([stdev])
+            df_stdev = df_stdev.transpose()
+            #df_stdev.rename(columns={0:'stdev'}, inplace=True)
+        return df_stdev
+    def meanClose(self, symbol):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        meanClose = {}
+        for Ticker in symbol:
+            meanClose[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            meanClose[Ticker] = meanClose[Ticker].iloc[:,5].mean()
+            df_meanClose = pd.DataFrame([meanClose])
+            df_meanClose = df_meanClose.transpose()
+            df_meanClose.rename(columns={0:'MeanClose'}, inplace=True)
+        return df_meanClose
+    def meanHigh(self, symbol):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        meanHigh = {}
+        for Ticker in symbol:
+            meanHigh[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            meanHigh[Ticker] = meanHigh[Ticker].iloc[:,3].mean()
+            df_meanHigh = pd.DataFrame([meanHigh])
+            df_meanHigh = df_meanHigh.transpose()
+            df_meanClose.rename(columns={0:'MeanHigh'}, inplace=True)
+        return df_meanHigh
+    def meanLow(self, symbol):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        meanLow = {}
+        for Ticker in symbol:
+            meanLow[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            meanLow[Ticker] = meanLow[Ticker].iloc[:,4].mean()
+            df_meanLow = pd.DataFrame([meanLow])
+            df_meanLow = df_meanLow.transpose()
+            #df_meanLow.rename(columns={0:'MeanLow'}, inplace=True)
+        return df_meanLow
+    def twoSigmaUp(self, symbol, stdev=None):
+        stdev = self.stdev(symbol=symbol)
+        meanLow = self.meanLow(symbol=symbol)
+        twoStdev = {key: value * 2 for key, value in stdev.items()}
+        df_twoStdev = pd.DataFrame(twoStdev)
+        twoSigmaUp = df_twoStdev.radd(meanLow)
+        twoSigmaUp.rename(columns={0:'twoSigmaUp'}, inplace=True)
+        return twoSigmaUp
+    def twoSigmaDown(self, symbol, stdev=None):
+        stdev = self.stdev(symbol=symbol)
+        meanClose = self.meanClose(symbol=symbol)
+        twoStdev = {key: value * 2 for key, value in stdev.items()}
+        df_twoStdev = pd.DataFrame(twoStdev)
+        twoSigmaDown = df_twoStdev.rsub(meanClose)
+        twoSigmaDown.rename(columns={0:'twoSigmaDown'}, inplace=True)
+        return twoSigmaDown
+    def two_stdevSell(self, symbol=None):
+        twoSigmaUp = self.twoSigmaUp(symbol=symbol)
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        Low = {}
+        for Ticker in symbol:
+            Low[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            Low[Ticker] = Low[Ticker].iloc[0,4]
+            df_Low = pd.DataFrame([Low])
+            df_Low = df_Low.transpose()
+            df_Low.rename(columns={0:'MeanLow'}, inplace=True)
+        df_twoSigmaUpSell = df_Low.merge(twoSigmaUp, left_index=True, right_index=True)
+        return df_twoSigmaUpSell
+    def CloseMeanSell(self, symbol=None):
+        meanClose = self.meanClose(symbol=symbol)
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        close = {}
+        for Ticker in symbol:
+            close[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            close[Ticker] = close[Ticker].iloc[0,5]
+            df_close = pd.DataFrame([close])
+            df_close = df_close.transpose()
+            df_close.rename(columns={0:'Close'}, inplace=True)
+        df_CloseMean = df_close.merge(meanClose, left_index=True, right_index=True)
+        return df_CloseMean
+    def CloseTrend(self, symbol=None):
+        Date = time.strftime('%Y-%m-%d', time.localtime())
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'OHLC')
+        close = {}
+        closeLookback = {}
+        for Ticker in symbol:
+            close[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            close[Ticker] = close[Ticker].iloc[0,5]
+            df_close = pd.DataFrame([close])
+            df_close = df_close.transpose()
+            df_close.rename(columns={0:'Close'}, inplace=True)
+            closeLookback[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
+            closeLookback[Ticker] = closeLookback[Ticker].iloc[3,5]
+            df_closeLookback = pd.DataFrame([closeLookback])
+            df_closeLookback = df_closeLookback.transpose()
+            df_closeLookback.rename(columns={0:'CloseLookback'}, inplace=True)
+        df_closeTrend = df_close.merge(df_closeLookback, left_index=True, right_index=True)
+        return df_closeTrend
 #BUY/SELL SIGNALS
     def SMABuyTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
@@ -472,6 +597,11 @@ class TDClient():
         buyTickers = df_MACD[df_MACD['MACD'] > df_MACD['MACD Signal']].index
         buyTickers = buyTickers.tolist()
         return buyTickers
+    def MomentumBuyTickers(self, symbol=None):
+        Momentum = self.Momentum(symbol=symbol)
+        MomentumBuy = Momentum[Momentum['Momentum'] > 0].index
+        MomentumBuy = MomentumBuy.tolist()
+        return MomentumBuy
     def SMA_SellTickers(self,symbol=None):
         fiftyDaySMA = self.fiftyDaySMA(symbol=symbol)
         fiftyDaySMA_Values = pd.DataFrame.from_dict(fiftyDaySMA, orient='index')
@@ -510,11 +640,34 @@ class TDClient():
         streamQuote = {}
         askPrice = {}
         for Ticker in position:
-            streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])
-            streamQuote[Ticker] = streamData[Ticker].iloc[-1] 
-            askPrice[Ticker] = streamQuote[Ticker]['AskPrice']
+            while True:
+                if path.exists(Ticker + '_' + 'Stream' + '_' + Date + '.csv'):
+                    os.path.isfile((Ticker + '_' + 'Stream' + '_' + Date + '.csv'))
+                    streamData[Ticker] = pd.read_csv((Ticker + '_' + 'Stream' + '_' + Date + '.csv'),names=['Symbol','AskPrice','Time'])
+                    streamQuote[Ticker] = streamData[Ticker].iloc[-1] 
+                    askPrice[Ticker] = streamQuote[Ticker]['AskPrice']
+                    break
+                    #return askPrice
+                else:
+                    print('Waiting for quote price.')
+                    time.sleep(30)
             #askPrice = pd.DataFrame(data=askPrice, index=askPrice.keys())
         return askPrice
+    def two_stdevSellTickers(self, symbol=None):
+        two_stdevSell = self.two_stdevSell(symbol=symbol)
+        two_stdevSellTickers = two_stdevSell[two_stdevSell['MeanLow'] > two_stdevSell['twoSigmaUp']].index
+        two_stdevSellTickers = two_stdevSellTickers.tolist()
+        return two_stdevSellTickers
+    def CloseMeanSellTickers(self, symbol=None):
+        CloseMeanSell = self.CloseMeanSell(symbol=symbol)
+        CloseMeanSellTickers = CloseMeanSell[CloseMeanSell['Close'] < CloseMeanSell['MeanClose']].index
+        CloseMeanSellTickers = CloseMeanSellTickers.tolist()
+        return CloseMeanSellTickers
+    def CloseMeanTrendSellTickers(self, symbol=None):
+        CloseMeanTrend = self.CloseTrend(symbol=symbol)
+        CloseMeanTrendSellTickers = CloseMeanTrend[CloseMeanTrend['Close'] < CloseMeanTrend['CloseLookback']].index
+        CloseMeanTrendSellTickers = CloseMeanTrendSellTickers.tolist()
+        return CloseMeanTrendSellTickers
 #Account Info
     def accounts(self, accntNmber=None):
         AccntPayload = {'fields':'positions',
@@ -567,11 +720,13 @@ class TDClient():
         quotePrice = self.readStream(position=position)      
         quotePrice = [float(value) for value in quotePrice.values()]
         if quotePrice <= [1.00]:
-            shares = 3
+            shares = 100
         elif quotePrice <= [2.00]:
-            shares = 2
+            shares = 50
         elif quotePrice <= [3.00]:
-            shares = 1
+            shares = 25
+        elif quotePrice <= [4.00]:
+            shares = 10
         else:
             shares = 0
         return shares
