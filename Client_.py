@@ -16,6 +16,8 @@ import pandas as pd
 import numpy as np
 import os
 from os import path
+from openpyxl import load_workbook
+
 
 
 
@@ -508,7 +510,7 @@ class TDClient():
     def twoSigmaUp(self, symbol, stdev=None):
         stdev = self.stdev(symbol=symbol)
         meanLow = self.meanLow(symbol=symbol)
-        twoStdev = {key: value * 2 for key, value in stdev.items()}
+        twoStdev = {key: value * 1.5 for key, value in stdev.items()}
         df_twoStdev = pd.DataFrame(twoStdev)
         twoSigmaUp = df_twoStdev.radd(meanLow)
         twoSigmaUp.rename(columns={0:'twoSigmaUp'}, inplace=True)
@@ -559,7 +561,7 @@ class TDClient():
             df_close = df_close.transpose()
             df_close.rename(columns={0:'Close'}, inplace=True)
             closeLookback[Ticker] = pd.read_csv((Ticker + '_' + 'OHLC' + '_' + Date + '.csv'))
-            closeLookback[Ticker] = closeLookback[Ticker].iloc[3,5]
+            closeLookback[Ticker] = closeLookback[Ticker].iloc[4,5]
             df_closeLookback = pd.DataFrame([closeLookback])
             df_closeLookback = df_closeLookback.transpose()
             df_closeLookback.rename(columns={0:'CloseLookback'}, inplace=True)
@@ -715,17 +717,70 @@ class TDClient():
         dfPortfolio = dfAssets.merge(dfPositions, left_index=True, right_index=True)
         dfPortfolio.rename(columns={'0_x':'Ticker','0_y':'Quantity'}, inplace=True)
         return dfPortfolio
+    def TDA_Watchlists(self, accntNmber=None):
+        WatchlistPayload = {'apikey':client_id}
+        merged_headers = self.headers()
+        getWatchlistEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/watchlists/{}'.format(accntNmber,1466022388)
+        WatchlistContent = requests.get(url=getWatchlistEndpoint, headers=merged_headers, params=WatchlistPayload)
+        Watchlist = WatchlistContent.json()
+        return Watchlist
+    def watchlistSymbols(self, accntNmber=None):
+        watchlist = self.TDA_Watchlists(accntNmber=accntNmber)
+        watchlistSymbols = {}
+        try:
+            #Dont like hard coded values
+            for i in range(100):
+                watchlistSymbols[i] = watchlist['watchlistItems'][i]['instrument']['symbol']
+                data = watchlistSymbols.values()
+                Symbols = list(data)
+        except IndexError:
+            'N/A'
+        return Symbols
+    def Portfolio_toExcelRTD(self, symbol=None, accntNmber=None):
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+        portfolio = self.accntAssets(symbol=symbol,accntNmber=accntNmber)
+        excelPortfolioReader = pd.read_excel(r'Portfolio.xlsm', sheet_name='EquityPositions')
+        positions = pd.DataFrame(excelPortfolioReader)
+        positions = positions['Stock']
+        stockPositions = list(positions)
+        stockAppend = [i for i in portfolio if i not in stockPositions]
+        stockAppend = pd.DataFrame(stockAppend)
+        book = load_workbook('Portfolio.xlsm', keep_vba=True)
+        writer = pd.ExcelWriter('Portfolio.xlsm', engine='openpyxl', mode='a')
+        writer.book = book
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        stockAppend.to_excel(writer, startrow=len(stockPositions)+1, sheet_name='EquityPositions', header=False, index=False)
+        writer.save()
+    def Watchlist_toExcelRTD(self, symbol=None, accntNmber=None):
+        os.chdir('C:\SourceCode\TD-AmeritradeAPI')
+        watchlistEquity = self.watchlistSymbols(accntNmber=accntNmber)
+        readerExcel = pd.read_excel(r'Portfolio.xlsm')
+        watchlistPositions = pd.DataFrame(readerExcel)
+        watchlistPositions = watchlistPositions['Stock']
+        watchlistStocks = list(watchlistPositions)
+        tickerAppend = [i for i in watchlistEquity if i not in watchlistStocks]
+        tickerAppend = pd.DataFrame(tickerAppend)
+        book = load_workbook('Portfolio.xlsm', keep_vba=True)
+        writer = pd.ExcelWriter('Portfolio.xlsm', engine='openpyxl', mode='a')
+        writer.book = book
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        tickerAppend.to_excel(writer, startrow=len(watchlistStocks)+1, sheet_name='EquityWatchlist', header=False, index=False)
+        writer.save()
 #Orders
     def shareNum_buy(self, positions=None, position=None):
         quotePrice = self.readStream(position=position)      
         quotePrice = [float(value) for value in quotePrice.values()]
         if quotePrice <= [1.00]:
-            shares = 100
+            shares = 300
         elif quotePrice <= [2.00]:
-            shares = 50
+            shares = 200
         elif quotePrice <= [3.00]:
-            shares = 25
+            shares = 100
         elif quotePrice <= [4.00]:
+            shares = 50
+        elif quotePrice <= [5.00]:
+            shares = 20
+        elif quotePrice <= [6.00]:
             shares = 10
         else:
             shares = 0
@@ -774,53 +829,39 @@ class TDClient():
         orderEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
         SellOrder = requests.post(url=orderEndpoint, headers=headers, data=orderData)
         return SellOrder
-    def sellorderSummary(self, shares=None, ticker=None):
-        Date = time.strftime('%Y-%m-%d', time.localtime())
-        TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        orderData = self.SellMarketOrder(shares=shares, ticker=ticker)
-        Summary = {'orderType': orderData['orderType'],
-                      'Date': Date,
-                      'Time': TimeSec,
-                      'orderLegCollection':[{'instruction':orderData['orderLegConstuction']['instruction'],
-                                             'quantity':orderData['orderLegConstuction']['quantity'],
-                                             'symbol':orderData['orderLegConstuction']['instrument']['symbol'],
-                                             'price':'pull form streamer'
-                                           }]
-                     }
-        sellSummary = json.dumps(Summary)
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders'):
-            with open (ticker + ' ' + 'sell.json','w') as SellOrder:
-                SellOrder.write(sellSummary)
-        else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
-            with open (ticker + ' ' + 'sell.json', 'w') as SellOrder:
-                SellOrder.write(sellSummary)
-    def buyorderSummary(self, shares=None, ticker=None):
-        Date = time.strftime('%Y-%m-%d', time.localtime())
-        TimeSec = time.strftime('%I:%M:%S', time.localtime())
-        orderData = self.BuyMarketOrder(shares=shares, ticker=ticker)
-        Summary = {'orderType': orderData['orderType'][0],
-                      'Date': Date,
-                      'Time': TimeSec,
-                      'orderLegCollection':[{'instruction':orderData['orderLegConstuction']['instruction'],
-                                             'quantity':orderData['orderLegConstuction']['quantity'],
-                                             'symbol':orderData['orderLegConstuction']['instrument']['symbol'],
-                                             'price':'pull from streamer'
-                                           }]
-                     }
-        buySummary = json.dumps(Summary,indent=4)
-        os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date)
-        if path.exists('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders'):
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
-            with open (ticker + ' ' + 'buy.json','w') as BuyOrder:
-                BuyOrder.write(buySummary)
-        else:
-            os.mkdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
-            os.chdir('C:\SourceCode\TD-AmeritradeAPI\Data' + '\\' + Date + '\\' + 'Orders')
-            with open (ticker + ' ' + 'buy.json', 'w') as BuyOrder:
-                BuyOrder.write(buySummary)
+    def getOrders(self, accntNmber=None):
+        fromEnteredTime = (datetime.now() - timedelta(hours=120)).strftime('%Y-%m-%d')
+        toEnteredTime = time.strftime('%Y-%m-%d', time.localtime())
+        OrdersPayload = {
+                         'apikey':client_id,
+                         'fromEnteredTime':fromEnteredTime,
+                         'toEnteredTime':toEnteredTime,
+                         'maxResults':10,
+                         'status':'FILLED'
+                       }
+        merged_headers = self.headers()
+        getOrdersEndpoint = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accntNmber)
+        ordersContent = requests.get(url=getOrdersEndpoint, headers=merged_headers, params=OrdersPayload)
+        orders = ordersContent.json()
+        return orders
+    def ordersExcel(self, accntNmber=None):
+        orderHistory = self.getOrders(accntNmber=accntNmber)
+        quantity = {}
+        order = {}
+        position = {}
+        try:
+            #Dont like hard coded values
+            for i in range(10):
+                quantity[i] = orderHistory[i]['orderLegCollection'][i]['quantity']
+                order[i] = orderHistory[i]['orderLegCollection'][i]['instruction']
+                position[i] = orderHistory[i]['orderLegCollection'][i]['instrument']['symbol']
+                print(order)
+                print(position)
+        except IndexError:
+            'N/A'
+        return quantity
+
+   
 
 
 

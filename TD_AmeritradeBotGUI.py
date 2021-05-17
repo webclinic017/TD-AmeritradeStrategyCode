@@ -1,10 +1,9 @@
-import tkinter 
-from tkinter import *
 from Client_ import TDClient
 from config import client_id, password, accntNmber, userName
-import os
+import streamlit as st
+import datetime as date
 
-Font_large = ('Verdana', 12)
+
 '''
 TDSession = TDClient(account_number = accntNmber,
                      account_password = password,
@@ -13,15 +12,3 @@ TDSession = TDClient(account_number = accntNmber,
                      #cache_state = True
                      )
 '''
-class Application(tk.Frame):
-    def __init__(self, master, *args, **kwargs):
-        #tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.master = master
-        master.title("A simple GUI")
-
-        self.label = Label(master, text="This is our first GUI!")
-        self.label.pack()
-
-root = tk.Tk()
-Application(root)
-root.mainloop()
