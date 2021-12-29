@@ -494,7 +494,7 @@ class TDClient():
             meanHigh[Ticker] = meanHigh[Ticker].iloc[:,3].mean()
             df_meanHigh = pd.DataFrame([meanHigh])
             df_meanHigh = df_meanHigh.transpose()
-            df_meanClose.rename(columns={0:'MeanHigh'}, inplace=True)
+            df_meanHigh.rename(columns={0:'MeanHigh'}, inplace=True)
         return df_meanHigh
     def meanLow(self, symbol):
         Date = time.strftime('%Y-%m-%d', time.localtime())

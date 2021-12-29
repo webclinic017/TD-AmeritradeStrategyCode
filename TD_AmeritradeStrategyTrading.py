@@ -24,7 +24,7 @@ print(TDSession.authstate)
 #Inputs
 #Number of days desired for a moving average 0 is used as a value
     #e.g. for 10 days of data make the value below 11
-Num_DayMAInputs = 42
+Num_DayMAInputs = 126
 symbol = TDSession.multiple_symbol_watchlist()
 #OHLC Data
 #Define parameters for Candles Data Open High Low Close (OHLC)
@@ -38,7 +38,7 @@ for Symbol in symbol:
     #hist_frequency = 10
     hist_needExtendedHoursData = False
     Num_dayMA = Num_DayMAInputs
-    for days in range (1,Num_dayMA,1):
+    for days in range (0,Num_dayMA,1):
         hist_startDate = str(int(round(((datetime.now() - timedelta(days=days)).timestamp()) * 1000)))
         HistDate = (int(round((datetime.now() - timedelta(days=days)).timestamp())))
         HistYear = datetime.fromtimestamp(HistDate).year
@@ -103,14 +103,9 @@ print('Portfolio: ', TD_Portfolio)
 Positions = TD_Portfolio.set_index('Ticker')
 Positions = Positions.drop('MMDA1')
 positions = list(Positions.index)
-watchlistRTD = TDSession.Watchlist_toExcelRTD(symbol=symbol, accntNmber=accntNmber)
-'''
-Orders = TDSession.getOrders(accntNmber=accntNmber)
-print(Orders)
-ordersExcel = TDSession.ordersExcel(accntNmber=accntNmber)
-print(ordersExcel)
-'''
+#watchlistRTD = TDSession.Watchlist_toExcelRTD(symbol=symbol, accntNmber=accntNmber)
 #Momentum Buy
+'''
 for position in Momentum_buy:
     ticker = str(position)
     position = [position]
@@ -131,12 +126,7 @@ for position in Momentum_buy:
         else:
             print(ticker + ' is a Low Close sell Position')
     else:
-        print('You already own' + ' ' + ticker)
-TD_Portfolio = TDSession.TDA_Portfolio(accntNmber=accntNmber, symbol=symbol)
-#print('Portfolio: ', TD_Portfolio)
-Positions = TD_Portfolio.set_index('Ticker')
-Positions = Positions.drop('MMDA1')
-positions = list(Positions.index)
+        print('You already own' + ' ' + ticker)      
 for position in MACD_buy:
     ticker = str(position)
     position = [position]
@@ -158,8 +148,8 @@ for position in MACD_buy:
             print(ticker + ' is a Low Close sell Position')
     else:
         print('You already own' + ' ' + ticker)
-#MACD and Momentum buy with stdev Sell
 '''
+#MACD and Momentum buy with stdev Sell
 Momentum_stdevBuy = []
 for position in MomentumMACD_buy:
     ticker = str(position)
@@ -169,18 +159,15 @@ for position in MomentumMACD_buy:
     #for ticker in buy:
     if not ticker in positions:
         if not ticker in ClosestdevSell:
-            if not ticker in two_stdevSellTickers:
-                if not ticker in MACD_SellTickers:
-                    if shares == 0:
-                        pass
-                    else:
-                        shares = shares
-                        print('Buy ' + ticker)
-                        PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
+            if not ticker in MACD_SellTickers:
+                if shares == 0:
+                    pass
                 else:
-                    print(ticker + ' is MACD a sell Position')
+                    shares = shares
+                    print('Buy ' + ticker)
+                    PlaceMarketOrder = TDSession.place_order(accntNmber=accntNmber, shares=shares, ticker=ticker)
             else:
-                print(ticker + ' is a Standard Deviation sell Position')
+                print(ticker + ' is MACD a sell Position')
         else:
             print(ticker + ' is a Low Close sell Position')
     else:
@@ -206,7 +193,6 @@ for position in positions:
         print(position + ' Sold Due to Mean Low above Two Standard Deviation Stop Loss')
     else:
         pass
-'''
     if position in MACD_SellTickers:
         ticker = TD_Portfolio.set_index('Ticker')
         Positions = ticker.to_dict(orient='dict')
@@ -217,10 +203,8 @@ for position in positions:
         #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
-'''
 positionRTD = TDSession.Portfolio_toExcelRTD(symbol=symbol, accntNmber=accntNmber)
 #Break here
-'''
 #MACD and SMA Strategy
 Buy = []
 for position in buy:
@@ -239,6 +223,7 @@ for position in buy:
                #BuyOrderSummary = TDSession.buyorderSummary(shares=shares, ticker=position)
     else:
         print('You already own' + ' ' + ticker)
+'''
 Sell = []
 for position in positions:
     if position in MACD_SellTickers:
@@ -251,9 +236,3 @@ for position in positions:
         #SellOrderSummary = TDSession.sellorderSummary(shares=shares, ticker=position)
     else:
         pass
-#Develop a strategy backtrader using the documentation at this website https://www.backtrader.com/
-    #Backtrader Simple moving average example https://towardsdatascience.com/trading-strategy-back-testing-with-backtrader-6c173f29e37f
-        #https://community.backtrader.com/topic/122/bband-strategy
-#Run Backtrader
-RunBacktrader = Backtrader_main_._Backtrader_()
-'''
