@@ -1,0 +1,16 @@
+{
+    "orderType": "MARKET",
+    "session": "NORMAL",
+    "duration": "DAY",
+    "orderStrategyType": "SINGLE",
+    "orderLegCollection": [
+        {
+            "instruction": "Sell",
+            "quantity": 5,
+            "instrument": {
+                "symbol": "AVEO",
+                "assetType": "EQUITY"
+            }
+        }
+    ]
+}
