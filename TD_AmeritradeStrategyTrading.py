@@ -4,7 +4,6 @@ from config import client_id, password, accntNmber, userName
 from datetime import datetime
 from datetime import timedelta
 from datetime import date
-from Backtrader import Backtrader_main_
 import json
 import os
 import pandas as pd
